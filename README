@@ -1,0 +1,27 @@
+NAME
+    Device::USB - perl api to libusb
+
+SYNOPSIS
+      use Device::USB;
+
+      my $list = List();
+
+      # dump $list with Data::Dumper for details
+
+DESCRIPTION
+    This module will allow custom usb drivers to be written in perl.
+    Currently it only lists the devices.
+
+NOTES
+    Expect the interface to change. You must have libusb v0.1.8 installed
+    first.
+
+TODO
+    Documentation ;)
+
+AUTHOR
+    David Davis, <xantus@cpan.org>
+
+SEE ALSO
+    perl(1), <http://libusb.sf.net/>
+
