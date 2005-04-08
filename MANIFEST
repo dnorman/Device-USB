@@ -3,6 +3,6 @@ Makefile.PL
 MANIFEST
 README
 t/00_compile.t
-_test.pl
+examples/list.pl
 USB.pm
 USB.xs

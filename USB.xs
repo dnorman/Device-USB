@@ -60,7 +60,6 @@ List ()
 		
 	for (bus = usb_busses; bus; bus = bus->next) {
 		
-		printf("bus/device  idVendor/idProduct\n");
 		for (dev = bus->devices; dev; dev = dev->next) {
 			int ret, i;
 			char string[256];
@@ -95,9 +94,6 @@ List ()
 			data = newSViv ( dev->descriptor.idProduct );
 			hv_store(HV_dev_info,"product", 7, data, 0);
 			
-			printf("%s/%s     %04X/%04X\n", bus->dirname, dev->filename,
-				dev->descriptor.idVendor, dev->descriptor.idProduct);
-
 			udev = usb_open(dev);
 			if (udev) {
 				//XPUSHs( newRV_noinc( (SV*) HV_dev_info));
@@ -106,9 +102,9 @@ List ()
 					if (ret > 0) {
 						data = newSVpv ( string, strlen (string) );
 						hv_store(HV_dev_info,"manuf", 5, data, 0);
-						printf("- Manufacturer : %s\n", string);
+//						printf("- Manufacturer : %s\n", string);
 					} else {
-						printf("- Unable to fetch manufacturer string\n");
+//						printf("- Unable to fetch manufacturer string\n");
 					}
 				}
 
@@ -117,9 +113,9 @@ List ()
 					if (ret > 0) {
 						data = newSVpv ( string, strlen (string) );
 						hv_store(HV_dev_info,"prod", 4, data, 0);
-						printf("- Product      : %s\n", string);
+//						printf("- Product      : %s\n", string);
 					} else {
-						printf("- Unable to fetch product string\n");
+//						printf("- Unable to fetch product string\n");
 					}
 				}
 	
@@ -128,9 +124,9 @@ List ()
 					if (ret > 0) {
 						data = newSVpv ( string, strlen (string) );
 						hv_store(HV_dev_info,"serial", 6, data, 0);
-						printf("- Serial Number: %s\n", string);
+//						printf("- Serial Number: %s\n", string);
 					} else {
-						printf("- Unable to fetch serial number string\n");
+//						printf("- Unable to fetch serial number string\n");
 					}
 				}
 
@@ -141,7 +137,7 @@ List ()
 			av_push(AV_dev, newRV((SV*) HV_dev_info));
 			
 			if (!dev->config) {
-				printf("  Couldn't retrieve descriptors\n");
+//				printf("  Couldn't retrieve descriptors\n");
 				continue;
 			}
   
@@ -155,27 +151,27 @@ List ()
 				
 				data = newSViv ( (IV) config->wTotalLength );
 				hv_store(HV_config,"totallength", 11, data, 0);
-  				printf("  wTotalLength:         %d\n", config->wTotalLength);
+//  				printf("  wTotalLength:         %d\n", config->wTotalLength);
 				
 				data = newSViv ( (IV) config->bNumInterfaces );
 				hv_store(HV_config,"numinterfaces", 13, data, 0);
-				printf("  bNumInterfaces:       %d\n", config->bNumInterfaces);
+//				printf("  bNumInterfaces:       %d\n", config->bNumInterfaces);
 				
 				data = newSViv ( (IV) config->bConfigurationValue );
 				hv_store(HV_config,"configurationvalue", 18, data, 0);
-				printf("  bConfigurationValue:  %d\n", config->bConfigurationValue);
+//				printf("  bConfigurationValue:  %d\n", config->bConfigurationValue);
 				
 				data = newSViv ( (IV) config->iConfiguration );
 				hv_store(HV_config,"configuration", 13, data, 0);
-				printf("  iConfiguration:       %d\n", config->iConfiguration);
+//				printf("  iConfiguration:       %d\n", config->iConfiguration);
 				
 				data = newSViv ( config->bmAttributes );
 				hv_store(HV_config,"attributes", 10, data, 0);
-				printf("  bmAttributes:         %02xh\n", config->bmAttributes);
+//				printf("  bmAttributes:         %02xh\n", config->bmAttributes);
 				
 				data = newSViv ( (IV) config->MaxPower );
 				hv_store(HV_config,"maxpower", 8, data, 0);
-				printf("  MaxPower:             %d\n", config->MaxPower);
+//				printf("  MaxPower:             %d\n", config->MaxPower);
 				
 				hv_store (HV_dev_info, "altinterfaces", 13, newRV((SV*) AV_alti), 0);
 				
@@ -192,31 +188,31 @@ List ()
 						
 						data = newSViv ( (IV) altinterface->bInterfaceNumber );
 						hv_store(HV_alti,"interfacenumber", 15, data, 0);
-						printf("    bInterfaceNumber:   %d\n", altinterface->bInterfaceNumber);
+//						printf("    bInterfaceNumber:   %d\n", altinterface->bInterfaceNumber);
 						
 						data = newSViv ( (IV) altinterface->bAlternateSetting );
 						hv_store(HV_alti,"alternatesetting", 16, data, 0);
-						printf("    bAlternateSetting:  %d\n", altinterface->bAlternateSetting);
+//						printf("    bAlternateSetting:  %d\n", altinterface->bAlternateSetting);
 						
 						data = newSViv ( (IV) altinterface->bNumEndpoints );
 						hv_store(HV_alti,"numendpoints", 12, data, 0);
-						printf("    bNumEndpoints:      %d\n", altinterface->bNumEndpoints);
+//						printf("    bNumEndpoints:      %d\n", altinterface->bNumEndpoints);
 						
 						data = newSViv ( (IV) altinterface->bInterfaceClass );
 						hv_store(HV_alti,"interfaceclass", 14, data, 0);
-						printf("    bInterfaceClass:    %d\n", altinterface->bInterfaceClass);
+//						printf("    bInterfaceClass:    %d\n", altinterface->bInterfaceClass);
 						
 						data = newSViv ( (IV) altinterface->bInterfaceSubClass );
 						hv_store(HV_alti,"interfacesubclass", 17, data, 0);
-						printf("    bInterfaceSubClass: %d\n", altinterface->bInterfaceSubClass);
+//						printf("    bInterfaceSubClass: %d\n", altinterface->bInterfaceSubClass);
 						
 						data = newSViv ( (IV) altinterface->bInterfaceProtocol );
 						hv_store(HV_alti,"interfaceprotocol", 17, data, 0);
-						printf("    bInterfaceProtocol: %d\n", altinterface->bInterfaceProtocol);
+//						printf("    bInterfaceProtocol: %d\n", altinterface->bInterfaceProtocol);
 
 						data = newSViv ( (IV) altinterface->iInterface );
 						hv_store(HV_alti,"interface", 9, data, 0);
-						printf("    iInterface:         %d\n", altinterface->iInterface);
+//						printf("    iInterface:         %d\n", altinterface->iInterface);
 					
 						hv_store (HV_dev_info, "endpoints", 9, newRV((SV*) AV_endpoints), 0);
 						av_push(AV_endpoints, newRV((SV*) HV_endpoints));
@@ -227,27 +223,27 @@ List ()
 
 							data = newSViv ( (IV) endpoint->bEndpointAddress );
 							hv_store(HV_endpoints,"endpointaddress", 15, data, 0);
-							printf("      bEndpointAddress: %02xh\n", endpoint->bEndpointAddress);
+//							printf("      bEndpointAddress: %02xh\n", endpoint->bEndpointAddress);
 							
 							data = newSViv ( (IV) endpoint->bmAttributes );
 							hv_store(HV_endpoints,"attributes", 10, data, 0);
-							printf("      bmAttributes:     %02xh\n", endpoint->bmAttributes);
+//							printf("      bmAttributes:     %02xh\n", endpoint->bmAttributes);
 							
 							data = newSViv ( (IV) endpoint->wMaxPacketSize );
 							hv_store(HV_endpoints,"maxpacketsize", 13, data, 0);
-							printf("      wMaxPacketSize:   %d\n", endpoint->wMaxPacketSize);
+//							printf("      wMaxPacketSize:   %d\n", endpoint->wMaxPacketSize);
 							
 							data = newSViv ( (IV) endpoint->bInterval );
 							hv_store(HV_endpoints,"interval", 8, data, 0);
-							printf("      bInterval:        %d\n", endpoint->bInterval);
+//							printf("      bInterval:        %d\n", endpoint->bInterval);
 							
 							data = newSViv ( (IV) endpoint->bRefresh );
 							hv_store(HV_endpoints,"refresh", 7, data, 0);
-							printf("      bRefresh:         %d\n", endpoint->bRefresh);
+//							printf("      bRefresh:         %d\n", endpoint->bRefresh);
 							
 							data = newSViv ( (IV) endpoint->bInterval );
 							hv_store(HV_endpoints,"synchaddress", 12, data, 0);
-							printf("      bSynchAddress:    %d\n", endpoint->bInterval);
+//							printf("      bSynchAddress:    %d\n", endpoint->bInterval);
 						}
 					}
 				}

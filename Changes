@@ -1,4 +1,7 @@
 Revision history for Perl extension Device::USB
 
+0.015  Thu Apr 07 23:36:00 2005
+	- removed prints from the xs, oops..
+
 0.01  Mon Jan 31 02:46:00 2005
 	- original version
