@@ -1,21 +1,20 @@
-use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+use strict;
+use warnings;
+use Inline::MakeMaker;
 
 WriteMakefile(
-	'NAME'		=> 'Device::USB',
-	'VERSION_FROM'	=> 'USB.pm',
-	'PREREQ_PM'		=> {
-		# module => '1.01',
-	},
-	($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-		(
-			ABSTRACT_FROM => 'USB.pm', # retrieve abstract from module
-			AUTHOR     => 'David Davis <xantus@cpan.org>') : ()),
-			'LIBS'		=> ['-lusb'],
-			'DEFINE'		=> '', # e.g., '-DHAVE_SOMETHING'
-			# Insert -I. if you add *.h files later:
-#			'INC'		=> '-I/usr/include/', # e.g., '-I/usr/include/other'
-			# Un-comment this if you add C files to link with later:
-#			'OBJECT'		=> '$(O_FILES)', # link all the C files too
+    NAME                => 'Device::USB',
+    AUTHOR              => 'G. Wade Johnson <wade@anomaly.org>',
+    VERSION_FROM        => 'lib/Device/USB.pm',
+    ABSTRACT_FROM       => 'lib/Device/USB.pm',
+    PL_FILES            => {},
+    PREREQ_PM => {
+        'Test::More' => 0,
+	'Inline::C' => 0,
+	'Carp' => 0,
+    },
+    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean               => {
+        FILES => 'Device-USB-* USB.inl _Inline'
+    },
 );
