@@ -12,11 +12,11 @@ Device::USB::Bus - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION=0.10;
+our $VERSION=0.11;
 
 
 =head1 SYNOPSIS
@@ -116,7 +116,7 @@ Houston Perl Mongers Group
 =head1 BUGS
 
 Please report any bugs or feature requests to
-C<bug-maze-svg1@rt.cpan.org>, or through the web interface at
+C<bug-device-usb@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Device::USB>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.

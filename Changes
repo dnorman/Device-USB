@@ -1,5 +1,10 @@
 Revision history for Device-USB
 
+0.12    2006/05/08
+        Fixed a bug that prevented control_msg from returning data.
+0.11	2006/04/05
+	Correct some typing errors in the documentation.
+	Correct return code on Device::USB::Device::open().
 0.10    2006/04/01
 	Build test suite and shake out bugs with testing.
 0.03	2006/03/27
@@ -7,4 +12,3 @@ Revision history for Device-USB
 	(Not released)
 0.02    2006/03/25
         Mostly complete first version available for limited distribution.
-

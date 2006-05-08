@@ -38,16 +38,16 @@ After installing, you can find documentation for this module with the perldoc co
 You can also look for information at:
 
     Search CPAN
-        http://search.cpan.org/dist/Device-USB-LibUSB
+        http://search.cpan.org/dist/Device-USB
 
     CPAN Request Tracker:
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Device-USB-LibUSB
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Device-USB
 
     AnnoCPAN, annotated CPAN documentation:
-        http://annocpan.org/dist/Device-USB-LibUSB
+        http://annocpan.org/dist/Device-USB
 
     CPAN Ratings:
-        http://cpanratings.perl.org/d/Device-USB-LibUSB
+        http://cpanratings.perl.org/d/Device-USB
 
 COPYRIGHT AND LICENCE
 

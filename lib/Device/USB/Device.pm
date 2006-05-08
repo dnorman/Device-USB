@@ -20,11 +20,11 @@ Device::USB::Device - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.12
 
 =cut
 
-our $VERSION=0.10;
+our $VERSION=0.12;
 
 
 =head1 SYNOPSIS
@@ -36,7 +36,7 @@ using the libusb library.
 
     my $usb = Device::USB->new();
     my $dev = $usb->find_device( $VENDOR, $PRODUCT );
-    
+
     printf "Device: %04X:%04X\n", $dev->idVendor(), $dev->idProduct();
     $dev->open();
     print "Manufactured by ", $dev->manufacturer(), "\n",
@@ -79,7 +79,7 @@ sub DESTROY
 sub _make_descr_accessor
 {
     my $name = shift;
-    
+
     eval qq{sub $name
         {
             my \$self = shift;
@@ -171,7 +171,7 @@ Retrieve the manufacture name from the device as a string. The device must be
 open for this function to work. Return undef if the device read fails.
 
 =cut
-    
+
 sub manufacturer
 {
     my $self = shift;
@@ -185,11 +185,11 @@ Retrieve the product name from the device as a string. The device must be
 open for this function to work. Return undef if the device read fails.
 
 =cut
-    
+
 sub product
 {
     my $self = shift;
-    
+
     return $self->get_string_simple( $self->iProduct() );
 }
 
@@ -199,7 +199,7 @@ Retrieve the serial nubmer from the device as a string. The device must be
 open for this function to work. Return undef if the device read fails.
 
 =cut
-    
+
 sub serial_number
 {
     my $self = shift;
@@ -211,6 +211,8 @@ sub serial_number
 
 Open the device. If the device is already open, close it and reopen it.
 
+If the device fails to open, the reason will be available in $!.
+
 =cut
 
 sub open
@@ -219,7 +221,7 @@ sub open
     Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
     $self->{handle} = Device::USB::libusb_open( $self->{device} );
 
-    return defined $self->{handle} && 0 != $self->{handle};
+    return 0 == $!;
 }
 
 =item set_configuration
@@ -372,9 +374,16 @@ Performs a control request to the default control pipe on a device.
 
 =item bytes
 
+Any returned data is placed here. If you don't want any returned data,
+pass undef.
+
 =item size
 
+Size of supplied buffer.
+
 =item timeout
+
+Milliseconds to wait for response.
 
 =back
 
@@ -386,11 +395,15 @@ sub control_msg
 {
     my $self = shift;
     my ($requesttype, $request, $value, $index, $bytes, $size, $timeout) = @_;
+    $bytes = "" unless defined $bytes;
 
-    return Device::USB::libusb_control_msg(
+    my ($retval, $out) = Device::USB::libusb_control_msg(
             $self->{handle}, $requesttype, $request, $value,
             $index, $bytes, $size, $timeout
-        );
+       );
+    # replace the input string in $bytes.
+    $_[4] = $out if defined $_[4];
+    return $retval;
 }
 
 =item get_string
@@ -748,7 +761,7 @@ Houston Perl Mongers Group
 =head1 BUGS
 
 Please report any bugs or feature requests to
-C<bug-maze-svg1@rt.cpan.org>, or through the web interface at
+C<bug-device-usb@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Device::USB>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.

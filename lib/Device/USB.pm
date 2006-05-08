@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.10',
+	VERSION => '0.12',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.12
 
 =cut
 
-our $VERSION='0.10';
+our $VERSION='0.12';
 
 
 =head1 SYNOPSIS
@@ -290,7 +290,7 @@ Original author: David Davis
 =head1 BUGS
 
 Please report any bugs or feature requests to
-C<bug-maze-svg1@rt.cpan.org>, or through the web interface at
+C<bug-device-usb@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Device::USB>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
@@ -378,9 +378,32 @@ int libusb_release_interface(void *dev, int interface)
     return usb_release_interface((usb_dev_handle *)dev, interface);
 }
 
-int libusb_control_msg(void *dev, int requesttype, int request, int value, int index, char *bytes, int size, int timeout)
+void libusb_control_msg(void *dev, int requesttype, int request, int value, int index, char *bytes, int size, int timeout)
 {
-    return usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
+    int i = 0;
+    int retval = usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
+    Inline_Stack_Vars;
+
+    /* quiet compiler warnings. */
+    (void)i;
+    (void)ax;
+    (void)items;
+    /*
+     * For some reason, I could not get this string transferred back to the Perl side
+     * through a direct copy like in get_simple_string. So, I resorted to returning
+     * it on the stack and doing the fixup on the Perl side.
+     */
+    Inline_Stack_Reset;
+    Inline_Stack_Push(sv_2mortal(newSViv(retval)));
+    if(retval > 0)
+    {
+        Inline_Stack_Push(sv_2mortal(newSVpv(bytes, retval)));
+    }
+    else
+    {
+        Inline_Stack_Push(sv_2mortal(newSVpv(bytes, 0)));
+    }
+    Inline_Stack_Done;
 }
 
 int libusb_get_string(void *dev, int index, int langid, char *buf, size_t buflen)
