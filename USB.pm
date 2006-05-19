@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.12',
+	VERSION => '0.13',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.12
+Version 0.13
 
 =cut
 
-our $VERSION='0.12';
+our $VERSION='0.13';
 
 
 =head1 SYNOPSIS
@@ -127,6 +127,24 @@ sub new
 
     return bless {}, $class;
 }
+
+=item debug_mode
+
+This class method enables low-level debugging messages from the library
+interface code.
+
+A true argument enables debug mode, a false argument disables it.
+
+=cut
+
+sub debug_mode
+{
+    my ($class, $enable) = @_;
+    
+    # force the value to be either 1 or 0
+    lib_debug_mode( $enable ? 1 : 0 );
+}
+
 
 =item find_busses
 
@@ -318,6 +336,8 @@ __C__
 
 #include <usb.h>
 
+static unsigned bDebug = 0;
+
 void libusb_init()
 {
     usb_init();
@@ -350,16 +370,28 @@ int libusb_close(void *dev)
 
 int libusb_set_configuration(void *dev, int configuration)
 {
+    if(bDebug)
+    {
+        printf( "libusb_set_configuration( %d )\n", configuration );
+    }
     return usb_set_configuration((usb_dev_handle *)dev, configuration);
 }
 
 int libusb_set_altinterface(void *dev, int alternate)
 {
+    if(bDebug)
+    {
+        printf( "libusb_set_altinterface( %d )\n", alternate );
+    }
     return usb_set_altinterface((usb_dev_handle *)dev, alternate);
 }
 
 int libusb_clear_halt(void *dev, unsigned int ep)
 {
+    if(bDebug)
+    {
+        printf( "libusb_clear_halt( %d )\n", ep );
+    }
     return usb_clear_halt((usb_dev_handle *)dev, ep);
 }
 
@@ -370,18 +402,39 @@ int libusb_reset(void *dev)
 
 int libusb_claim_interface(void *dev, int interface)
 {
+    if(bDebug)
+    {
+        printf( "libusb_claim_interface( %d )\n", interface );
+    }
     return usb_claim_interface((usb_dev_handle *)dev, interface);
 }
 
 int libusb_release_interface(void *dev, int interface)
 {
+    if(bDebug)
+    {
+        printf( "libusb_release_interface( %d )\n", interface );
+    }
     return usb_release_interface((usb_dev_handle *)dev, interface);
 }
 
 void libusb_control_msg(void *dev, int requesttype, int request, int value, int index, char *bytes, int size, int timeout)
 {
     int i = 0;
+
+    if(bDebug)
+    {
+        printf( "libusb_control_msg( %#04x, %#04x, %#04x, %#04x, %p, %d, %d )\n",
+            requesttype, request, value, index, bytes, size, timeout
+        );
+	/* maybe need to add support for printing the bytes string. */
+    }
     int retval = usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
+    if(bDebug)
+    {
+        printf( "\t => %d\n",retval );
+    }
+
     Inline_Stack_Vars;
 
     /* quiet compiler warnings. */
@@ -408,11 +461,23 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
 
 int libusb_get_string(void *dev, int index, int langid, char *buf, size_t buflen)
 {
+    if(bDebug)
+    {
+        printf( "libusb_get_string( %d, %d, %p, %u )\n",
+	    index, langid, buf, buflen
+	);
+    }
     return usb_get_string((usb_dev_handle *)dev, index, langid, buf, buflen);
 }
 
 int libusb_get_string_simple(void *dev, int index, char *buf, size_t buflen)
 {
+    if(bDebug)
+    {
+        printf( "libusb_get_string_simple( %d, %p, %u )\n",
+	    index, buf, buflen
+	);
+    }
     return usb_get_string_simple((usb_dev_handle *)dev, index, buf, buflen);
 }
 
@@ -732,3 +797,11 @@ SV *lib_find_usb_device( int vendor, int product )
     return &PL_sv_undef;
 }
 
+/*
+ * Enable or disable debugging mode.
+ */
+void  lib_debug_mode( int enable )
+{
+    printf( "Debugging: %s\n", (enable ? "on" : "off") );
+    bDebug = enable;
+}

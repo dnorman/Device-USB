@@ -1,5 +1,7 @@
 Revision history for Device-USB
 
+0.13    2006/05/18
+        Added debug mode to simplify debugging VSI module.
 0.12    2006/05/08
         Fixed a bug that prevented control_msg from returning data.
 0.11	2006/04/05
