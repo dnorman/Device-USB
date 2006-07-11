@@ -12,8 +12,6 @@ use constant MAX_BUFFER_SIZE => 256;
 This class encapsulates the USB device structure and the methods that may be
 applied to it.
 
-=cut 
-
 =head1 NAME
 
 Device::USB::Device - Use libusb to access USB devices.
@@ -73,6 +71,7 @@ sub DESTROY
 {
     my $self = shift;
     Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
+    return;
 }
 
 # I need to build a lot of accessors
@@ -80,7 +79,7 @@ sub _make_descr_accessor
 {
     my $name = shift;
 
-    eval qq{sub $name
+    return eval qq{sub $name
         {
             my \$self = shift;
             return \$self->{descriptor}->{$name};

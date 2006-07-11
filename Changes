@@ -1,5 +1,8 @@
 Revision history for Device-USB
 
+0.14    2006/07/10
+        Corrected the \C<bInterfaceClass> field in the interface
+        descriptor. Thanks to Josep Monés Teixidor for spotting it.
 0.13    2006/05/18
         Added debug mode to simplify debugging VSI module.
 0.12    2006/05/08

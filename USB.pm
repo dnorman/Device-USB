@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.13',
+	VERSION => '0.14',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.13
+Version 0.14
 
 =cut
 
-our $VERSION='0.13';
+our $VERSION='0.14';
 
 
 =head1 SYNOPSIS
@@ -143,6 +143,7 @@ sub debug_mode
     
     # force the value to be either 1 or 0
     lib_debug_mode( $enable ? 1 : 0 );
+    return;
 }
 
 
@@ -313,11 +314,19 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Device::USB>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
+=head1 LIMITATIONS
+
+So far, this module has only been tested on Linux. It should work on any
+OS that supports the libusb library. Several people have reported problems
+compiling the module on Windows.
+
 =head1 ACKNOWLEDGEMENTS
 
 Thanks go to various members of the Houston Perl Mongers group for input
 on the module. But thanks mostly go to Paul Archer who proposed the project
 and helped with the development.
+
+Thanks to Josep Monés Teixidor for fixing the \C<bInterfaceClass> bug.
 
 =head1 COPYRIGHT & LICENSE
 
@@ -622,7 +631,7 @@ static void store_interface( HV* hash, struct usb_interface_descriptor* inter )
     hashStoreInt( hash, "bInterfaceNumber", inter->bInterfaceNumber );
     hashStoreInt( hash, "bAlternateSetting", inter->bAlternateSetting );
     hashStoreInt( hash, "bNumEndpoints ", inter->bNumEndpoints );
-    hashStoreInt( hash, "bInterfaceNumber", inter->bInterfaceClass );
+    hashStoreInt( hash, "bInterfaceClass", inter->bInterfaceClass );
     hashStoreInt( hash, "bInterfaceSubClass", inter->bInterfaceSubClass );
     hashStoreInt( hash, "bInterfaceProtocol", inter->bInterfaceProtocol );
     hashStoreInt( hash, "iInterface", inter->iInterface );
@@ -805,3 +814,4 @@ void  lib_debug_mode( int enable )
     printf( "Debugging: %s\n", (enable ? "on" : "off") );
     bDebug = enable;
 }
+
