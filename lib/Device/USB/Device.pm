@@ -18,11 +18,11 @@ Device::USB::Device - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.12
+Version 0.15
 
 =cut
 
-our $VERSION=0.12;
+our $VERSION=0.15;
 
 
 =head1 SYNOPSIS
@@ -734,6 +734,58 @@ sub interrupt_write
 
     return Device::USB::libusb_interrupt_write(
         $self->{handle}, $ep, $bytes, length $bytes, $timeout
+    );
+}
+
+=item get_driver_np
+
+This function returns the name of the driver bound to the interface
+specified by the parameter interface.
+
+=over 4
+
+=item $interface
+
+The interface number of interest.
+
+=back
+
+Returns \C<undef> on error.
+
+=cut
+
+sub get_driver_np
+{
+    my $self = shift;
+    my ($interface, $name) = @_;
+
+    my $buf = "\0" x MAX_BUFFER_SIZE;
+
+    my $retlen = Device::USB::libusb_get_driver_np(
+        $self->{handle}, $interface, $buf, MAX_BUFFER_SIZE
+    );
+
+    return if $retlen < 0;
+
+    return substr( $buf, 0, $retlen );
+}
+
+
+=item detach_kernel_driver_np
+
+This function will detach a kernel driver from the interface specified by
+parameter interface. Applications using libusb can then try claiming the
+interface. Returns 0 on success or < 0 on error.
+
+=cut
+
+sub detach_kernel_driver_np
+{
+    my $self = shift;
+    my $interface = shift;
+
+    return Device::USB::libusb_detach_kernel_driver_np(
+        $self->{handle}, $interface
     );
 }
 

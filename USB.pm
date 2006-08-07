@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.14',
+	VERSION => '0.15',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.14
+Version 0.15
 
 =cut
 
-our $VERSION='0.14';
+our $VERSION='0.15';
 
 
 =head1 SYNOPSIS
@@ -133,16 +133,24 @@ sub new
 This class method enables low-level debugging messages from the library
 interface code.
 
-A true argument enables debug mode, a false argument disables it.
+=over 4
+
+=item $level
+
+0 disables debugging, 1 enables some debug messages, and 2 enables verbose
+debug messages
+
+Any other values are forced to the nearest endpoint.
+
+=back
 
 =cut
 
 sub debug_mode
 {
-    my ($class, $enable) = @_;
+    my ($class, $level) = @_;
     
-    # force the value to be either 1 or 0
-    lib_debug_mode( $enable ? 1 : 0 );
+    lib_debug_mode( $level );
     return;
 }
 
@@ -318,7 +326,9 @@ your bug as I make changes.
 
 So far, this module has only been tested on Linux. It should work on any
 OS that supports the libusb library. Several people have reported problems
-compiling the module on Windows.
+compiling the module on Windows. In theory, it should be possible to make
+the library work with LibUsb-Win32 L<http://libusb-win32.sourceforge.net/>.
+Without access to a Windows development system, I can't make those changes.
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -327,6 +337,8 @@ on the module. But thanks mostly go to Paul Archer who proposed the project
 and helped with the development.
 
 Thanks to Josep Monés Teixidor for fixing the \C<bInterfaceClass> bug.
+Thanks to Mike McCauley for support of \C<usb_get_driver_np> and
+\C<usb_detach_kernel_driver_np>.
 
 =head1 COPYRIGHT & LICENSE
 
@@ -345,7 +357,7 @@ __C__
 
 #include <usb.h>
 
-static unsigned bDebug = 0;
+static unsigned debugLevel = 0;
 
 void libusb_init()
 {
@@ -379,7 +391,7 @@ int libusb_close(void *dev)
 
 int libusb_set_configuration(void *dev, int configuration)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_set_configuration( %d )\n", configuration );
     }
@@ -388,7 +400,7 @@ int libusb_set_configuration(void *dev, int configuration)
 
 int libusb_set_altinterface(void *dev, int alternate)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_set_altinterface( %d )\n", alternate );
     }
@@ -397,7 +409,7 @@ int libusb_set_altinterface(void *dev, int alternate)
 
 int libusb_clear_halt(void *dev, unsigned int ep)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_clear_halt( %d )\n", ep );
     }
@@ -409,9 +421,38 @@ int libusb_reset(void *dev)
     return usb_reset((usb_dev_handle *)dev);
 }
 
+int libusb_get_driver_np(void *dev, int interface, char *name, unsigned int namelen)
+{
+    int ret;
+    if(debugLevel)
+    {
+        printf( "libusb_get_driver_np( %d )\n", interface );
+    }
+#if LIBUSB_HAS_GET_DRIVER_NP
+    ret = usb_get_driver_np((usb_dev_handle *)dev, interface, name, namelen);
+    if (ret >= 0) return strlen(name);
+    return ret;
+#else
+    return 0;
+#endif
+}
+
+int libusb_detach_kernel_driver_np(void *dev, int interface)
+{
+    if(debugLevel)
+    {
+        printf( "libusb_detach_kernel_driver_np( %d )\n", interface );
+    }
+#if LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
+    return usb_detach_kernel_driver_np((usb_dev_handle *)dev, interface);
+#else
+    return 0;
+#endif
+}
+
 int libusb_claim_interface(void *dev, int interface)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_claim_interface( %d )\n", interface );
     }
@@ -420,7 +461,7 @@ int libusb_claim_interface(void *dev, int interface)
 
 int libusb_release_interface(void *dev, int interface)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_release_interface( %d )\n", interface );
     }
@@ -431,7 +472,7 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
 {
     int i = 0;
 
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_control_msg( %#04x, %#04x, %#04x, %#04x, %p, %d, %d )\n",
             requesttype, request, value, index, bytes, size, timeout
@@ -439,7 +480,7 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
 	/* maybe need to add support for printing the bytes string. */
     }
     int retval = usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "\t => %d\n",retval );
     }
@@ -470,7 +511,7 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
 
 int libusb_get_string(void *dev, int index, int langid, char *buf, size_t buflen)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_get_string( %d, %d, %p, %u )\n",
 	    index, langid, buf, buflen
@@ -481,7 +522,7 @@ int libusb_get_string(void *dev, int index, int langid, char *buf, size_t buflen
 
 int libusb_get_string_simple(void *dev, int index, char *buf, size_t buflen)
 {
-    if(bDebug)
+    if(debugLevel)
     {
         printf( "libusb_get_string_simple( %d, %p, %u )\n",
 	    index, buf, buflen
@@ -520,10 +561,6 @@ int libusb_interrupt_read(void *dev, int ep, char *bytes, int size, int timeout)
     return usb_interrupt_read((usb_dev_handle *)dev, ep, bytes, size, timeout);
 }
 
-#if 0
-int usb_get_driver_np(usb_dev_handle *dev, int interface, char *name, int namelen);
-int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface);
-#endif
 
 /* ------------------------------------------------------------
  * Provide Perl-ish interface for accessing busses and devices.
@@ -807,11 +844,25 @@ SV *lib_find_usb_device( int vendor, int product )
 }
 
 /*
- * Enable or disable debugging mode.
+ * Set debugging level: 0: off, 1: some messages, 2: verbose
+ * Values outside range are forced into range.
  */
-void  lib_debug_mode( int enable )
+void  lib_debug_mode( int unsafe_level )
 {
-    printf( "Debugging: %s\n", (enable ? "on" : "off") );
-    bDebug = enable;
+    static char* level_str[] = { "off", "on", "verbose" };
+
+    int level = unsafe_level;
+    if(level < 0)
+    {
+        level = 0;
+    }
+    else if(level > 2)
+    {
+        level = 2;
+    }
+
+    printf( "Debugging: %s\n", level_str[level] );
+    usb_set_debug(level);
+    debugLevel = level;
 }
 
