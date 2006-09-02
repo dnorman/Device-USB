@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.15',
+	VERSION => '0.16',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =cut
 
-our $VERSION='0.15';
+our $VERSION='0.16';
 
 
 =head1 SYNOPSIS
@@ -212,16 +212,16 @@ sub find_device
 
 =item list_devices
 
-Find all devices matching a vendor id and optional product id. If no product
-id is given, returns all devices found with the supplied vendor id. If a
-product id is given, returns all devices matching both the vendor id and
-product id.
+Find all devices matching a vendor id and optional product id. If called
+with no parameters, returns a list of all devices. If no product id is
+given, returns all devices found with the supplied vendor id. If a product
+id is given, returns all devices matching both the vendor id and product id.
 
 =over 4
 
 =item vendor
 
-the vendor id
+the optional vendor id
 
 =item product
 
@@ -244,8 +244,8 @@ sub list_devices
     {
         foreach my $dev ($bus->devices())
 	{
-	    if($dev->idVendor() == $vendor &&
-	       (!defined $product || $product == $dev->idProduct())
+	    if(!defined $vendor || ($dev->idVendor() == $vendor &&
+	       (!defined $product || $product == $dev->idProduct()))
 	    )
 	    {
 	        push @devices, $dev;

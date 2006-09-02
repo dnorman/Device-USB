@@ -1,6 +1,6 @@
 #!perl -T
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Device::USB;
 use Data::Dumper;
 
@@ -16,7 +16,7 @@ my $found_device = find_an_installed_device( 0, @{$busses} );
 
 SKIP:
 {
-    skip "No installed USB devices", 4 unless defined $found_device;
+    skip "No installed USB devices", 5 unless defined $found_device;
 
     my $vendor = $found_device->idVendor();
     my $product = $found_device->idProduct();
@@ -29,12 +29,16 @@ SKIP:
          @devices;
     is( $matches, $device_count, "All match the criteria" );
     
-    my @vendor_devices = $usb->list_devices( $vendor, $product );
+    my @vendor_devices = $usb->list_devices( $vendor );
     my $vdevice_count = @vendor_devices;
 
     ok( $device_count <= $vdevice_count, "At least one device found" );
     $matches = grep { $_->idVendor() == $vendor } @devices;
     is( $matches, $vdevice_count, "All match the criteria" );
+
+    my @all_devices = $usb->list_devices();
+    my $all_count = @all_devices;
+    ok( $vdevice_count <= $all_count, "At least one device found" );
 }
 
 
@@ -49,3 +53,4 @@ sub find_an_installed_device
 
     return;
 }
+

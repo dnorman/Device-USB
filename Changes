@@ -1,5 +1,13 @@
 Revision history for Device-USB
 
+0.16    2006/09/01
+        Modified \C<list_devices> to support listing all devices. Thanks to
+        Tony Awtrey for pointing this out. He also spotted an invalid
+        assumption in the tests, that has been corrected.
+0.15    2006/08/08
+        Applied patch from Mike McCauley that adds \C<get_driver_np> and
+        \C<detach_kernel_driver_np> methods, as well as extending the
+        debugging modes.
 0.14    2006/07/10
         Corrected the \C<bInterfaceClass> field in the interface
         descriptor. Thanks to Josep Monés Teixidor for spotting it.

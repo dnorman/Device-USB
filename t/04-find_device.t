@@ -27,8 +27,20 @@ SKIP:
     ok( defined $dev, "Device found." );
     is_deeply( $dev, $found_device, "first device matches" );
 
-    $found_device = find_an_installed_device( 1, @{$busses} );
-    skip "Only one USB device installed", 2 unless $found_device;
+    my $count = @{$busses};
+    skip "Only one USB device installed", 2 if $count < 2;
+
+    $found_device = undef;
+    for(my $i = 1; $i < $count; ++$i)
+    {
+        my $dev = find_an_installed_device( $i, @{$busses} );
+        # New vendor/product combination
+        if($vendor != $dev->idVendor() || $product != $dev->idProduct())
+        {
+            $found_device = $dev;
+            last;
+        }
+    }
     $vendor = $found_device->idVendor();
     $product = $found_device->idProduct();
 
