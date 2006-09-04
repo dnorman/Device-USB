@@ -1,20 +1,26 @@
 Revision history for Device-USB
 
+0.17    2006/09/04
+        Added FAQ document. Added new Device::USB::list_devices_if() and
+        Device::USB::find_device_if() methods for more flexible device
+        searching. Minor documentation cleanup.
 0.16    2006/09/01
-        Modified \C<list_devices> to support listing all devices. Thanks to
-        Tony Awtrey for pointing this out. He also spotted an invalid
-        assumption in the tests, that has been corrected.
+        Modified Device::USB::list_devices() to support listing all devices.
+        Thanks to Tony Awtrey for pointing this out. He also spotted an
+        invalid assumption in the tests; that has been corrected.
 0.15    2006/08/08
-        Applied patch from Mike McCauley that adds \C<get_driver_np> and
-        \C<detach_kernel_driver_np> methods, as well as extending the
-        debugging modes.
+        Applied patch from Mike McCauley that adds
+        Device::USB::Device::get_driver_np() and
+        Device::USB::Device::detach_kernel_driver_np() methods, as well as
+        extending the debugging modes.
 0.14    2006/07/10
-        Corrected the \C<bInterfaceClass> field in the interface
+        Corrected the bInterfaceClass field in the interface
         descriptor. Thanks to Josep Monés Teixidor for spotting it.
 0.13    2006/05/18
         Added debug mode to simplify debugging VSI module.
 0.12    2006/05/08
-        Fixed a bug that prevented control_msg from returning data.
+        Fixed a bug that prevented Device::USB::Device::control_msg() from
+        returning data.
 0.11	2006/04/05
 	Correct some typing errors in the documentation.
 	Correct return code on Device::USB::Device::open().

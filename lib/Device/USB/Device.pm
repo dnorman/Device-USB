@@ -750,7 +750,7 @@ The interface number of interest.
 
 =back
 
-Returns \C<undef> on error.
+Returns C<undef> on error.
 
 =cut
 

@@ -22,3 +22,4 @@ foreach my $bus (@{$busses})
 {
     isa_ok( $bus, "Device::USB::Bus" );
 }
+

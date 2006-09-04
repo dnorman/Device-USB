@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.16',
+	VERSION => '0.17',
    );
 
 Inline->init();
@@ -27,11 +27,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.16
+Version 0.17
 
 =cut
 
-our $VERSION='0.16';
+our $VERSION='0.17';
 
 
 =head1 SYNOPSIS
@@ -183,9 +183,9 @@ sub find_devices
 
 =item find_device
 
-Find and a particular USB device based on the vendor and product ids. If more
-than one device has the same product id from the same vendor, the fist one
-found will be returned.
+Find a particular USB device based on the vendor and product ids. If more
+than one device has the same product id from the same vendor, the first one
+found is returned.
 
 =over 4
 
@@ -208,6 +208,48 @@ sub find_device
     my $self = shift;
     my ($vendor, $product) = @_;
     return lib_find_usb_device( $vendor, $product );
+}
+
+=item find_device_if
+
+Find a particular USB device based on the supplied predicate coderef. If
+more than one device would satisfy the predicate, the first one found is
+returned.
+
+=over 4
+
+=item pred
+
+the predicate used to select a device
+
+=back
+
+returns a device reference or undef if none was found.
+
+=cut
+
+sub find_device_if
+{
+    my $self = shift;
+    my $pred = shift;
+
+    croak( "Missing predicate for choosing a device.\n" )
+        unless defined $pred;
+
+    croak( "Predicate must be a code reference.\n" )
+        unless 'CODE' eq ref $pred;
+
+    local $_;
+
+    foreach my $bus ($self->list_busses())
+    {
+        foreach($bus->devices())
+        {
+            return $_ if $pred->();
+        }
+    }
+
+    return;
 }
 
 =item list_devices
@@ -238,19 +280,70 @@ sub list_devices
 {
     my $self = shift;
     my ($vendor, $product) = @_;
+    my $pred = undef;
+
+    if(!defined $vendor)
+    {
+        $pred = sub { defined };
+    }
+    elsif(!defined $product)
+    {
+        $pred = sub { $vendor == $_->idVendor() };
+    }
+    else
+    {
+        $pred =
+            sub { $vendor == $_->idVendor() && $product == $_->idProduct() };
+    }
+
+    return $self->list_devices_if( $pred );
+}
+
+=item list_devices_if
+
+This method provides a more flexible interface for finding devices. It
+takes a single coderef parameter that is used to test each discovered
+device. If the coderef returns a true value, the device is returned in the
+list of matching devices, otherwise it is not.
+
+=over 4
+
+=item pred
+
+coderef to test devices.
+
+=back
+
+For example,
+
+    my @devices = $usb->list_devices_if(
+        sub { 9 == $_->bDeviceClass() }
+    );
+
+Returns all USB hubs found, because the device class for hub is 9. The
+device to test is available to the coderef in the C<$_> variable for
+simplicity.
+
+=cut
+
+sub list_devices_if
+{
+    my $self = shift;
+    my $pred = shift;
+
+    croak( "Missing predicate for choosing devices.\n" )
+        unless defined $pred;
+
+    croak( "Predicate must be a code reference.\n" )
+        unless 'CODE' eq ref $pred;
+
     my @devices = ();
+    local $_;
 
     foreach my $bus ($self->list_busses())
     {
-        foreach my $dev ($bus->devices())
-	{
-	    if(!defined $vendor || ($dev->idVendor() == $vendor &&
-	       (!defined $product || $product == $dev->idProduct()))
-	    )
-	    {
-	        push @devices, $dev;
-	    }
-	}
+        # Push all matching devices for this bus on list.
+        push @devices, grep { $pred->() } $bus->devices();
     }
 
     return wantarray ? @devices : \@devices;

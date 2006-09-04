@@ -3,6 +3,7 @@ dump_usb.pl
 lib/Device/USB.pm
 lib/Device/USB/Bus.pm
 lib/Device/USB/Device.pm
+lib/Device/USB/FAQ.pod
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
@@ -13,9 +14,13 @@ t/01-create-usb.t
 t/02-find_busses_devices.t
 t/03-list_busses.t
 t/04-find_device.t
-t/05-list_devices.t
-t/06-get_busses.t
-t/07-usb-bus.t
+t/05-find_device_if.t
+t/06-list_devices.t
+t/07-list_devices_if.t
+t/08-get_busses.t
+t/09-usb-bus.t
+t/10-usb-device-accessors.t
+t/11-usb-device-methods.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t

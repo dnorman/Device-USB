@@ -18,7 +18,6 @@ Version 0.11
 
 our $VERSION=0.11;
 
-
 =head1 SYNOPSIS
 
 This class encapsulates the USB bus structure and provides methods for
@@ -45,7 +44,7 @@ supports Perl code controlling and accessing USB devices.
 =head1 DESCRIPTION
 
 This module provides a Perl interface to the bus structures returned by the
-libusb library.. This library supports a read-only interface to the data libusb
+libusb library. This library supports a read-only interface to the data libusb
 returns about a USB bus.
 
 =head1 FUNCTIONS
@@ -126,6 +125,9 @@ your bug as I make changes.
 Thanks go to various members of the Houston Perl Mongers group for input
 on the module. But thanks mostly go to Paul Archer who proposed the project
 and helped with the development.
+
+Thanks also go to Josep Monés Teixidor, Mike McCauley, and Tony Awtrey for
+spotting, reporting, and (sometimes) fixing bugs.
 
 =head1 COPYRIGHT & LICENSE
 
