@@ -1,5 +1,7 @@
 #!perl -T
 
+use lib "t";
+use TestTools;
 use Test::More tests => 11;
 use Device::USB;
 use Data::Dumper;
@@ -49,19 +51,6 @@ SKIP:
     my @hubs = $usb->list_devices_if( sub { 9 == $_->bDeviceClass() } );
     my $mismatches = grep { 9 != $_->bDeviceClass() } @hubs;
     ok( !$mismatches, "No non-hubs selected." );
-}
-
-
-sub find_an_installed_device
-{
-    my $which = shift;
-    foreach my $bus (@_)
-    {
-        next unless @{$bus->devices()};
-	return $bus->devices()->[0] unless $which--;
-    }
-
-    return;
 }
 
 

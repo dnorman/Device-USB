@@ -2,6 +2,7 @@ Changes
 dump_usb.pl
 lib/Device/USB.pm
 lib/Device/USB/Bus.pm
+lib/Device/USB/DevConfig.pm
 lib/Device/USB/Device.pm
 lib/Device/USB/FAQ.pod
 Makefile.PL
@@ -21,7 +22,12 @@ t/08-get_busses.t
 t/09-usb-bus.t
 t/10-usb-device-accessors.t
 t/11-usb-device-methods.t
+t/12-constants.t
+t/13-bus_find_device_if.t
+t/14-bus_list_devices_if.t
+t/15-usb_dev_configuration.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
+t/TestTools.pm
 USB.pm

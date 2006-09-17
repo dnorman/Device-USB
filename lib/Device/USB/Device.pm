@@ -27,7 +27,7 @@ our $VERSION=0.15;
 
 =head1 SYNOPSIS
 
-Device:USB:LibUSB::Device provides a Perl object for accessing a USB device
+Device:USB::Device provides a Perl object for accessing a USB device
 using the libusb library.
 
     use Device::USB;
@@ -53,11 +53,11 @@ the method name prepended with "usb_".
 This module defines a Perl object that represents the data and functionality
 associated with a USB device. The object interface provides read-only access
 to the important data associated with a device. It also provides methods for
-almost all of the funcitons supplied by libusb. Where necessary, the interfaces
+almost all of the functions supplied by libusb. Where necessary, the interfaces
 to these methods were changed to better match Perl usage. However, most of the
 methods are straight-forward wrappers around their libusb counterparts.
 
-=head2 FUNCTIONS
+=head2 METHODS
 
 =over 4
 

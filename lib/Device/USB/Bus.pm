@@ -12,11 +12,11 @@ Device::USB::Bus - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.11
+Version 0.12
 
 =cut
 
-our $VERSION=0.11;
+our $VERSION=0.12;
 
 =head1 SYNOPSIS
 
@@ -90,6 +90,88 @@ sub devices
     my $self = shift;
 
     return wantarray ? @{$self->{devices}} : $self->{devices};
+}
+
+=item find_device_if
+
+Find a particular USB device based on the supplied predicate coderef. If
+more than one device would satisfy the predicate, the first one found is
+returned.
+
+=over 4
+
+=item pred
+
+the predicate used to select a device
+
+=back
+
+returns a device reference or undef if none was found.
+
+=cut
+
+sub find_device_if
+{
+    my $self = shift;
+    my $pred = shift;
+
+    croak( "Missing predicate for choosing a device.\n" )
+        unless defined $pred;
+
+    croak( "Predicate must be a code reference.\n" )
+        unless 'CODE' eq ref $pred;
+
+    local $_;
+
+    foreach($self->devices())
+    {
+        return $_ if $pred->();
+    }
+
+    return;
+}
+
+=item list_devices_if
+This method provides a flexible interface for finding devices. It
+takes a single coderef parameter that is used to test each discovered
+device. If the coderef returns a true value, the device is returned in the
+list of matching devices, otherwise it is not.
+
+=over 4
+
+=item pred
+
+coderef to test devices.
+
+=back
+
+For example,
+
+    my @devices = $bus->list_devices_if(
+        sub { Device::USB::CLASS_HUB == $_->bDeviceClass() }
+    );
+
+Returns all USB hubs found on this bus. The device to test is available to
+the coderef in the C<$_> variable for simplicity.
+
+=cut
+
+sub list_devices_if
+{
+    my $self = shift;
+    my $pred = shift;
+
+    croak( "Missing predicate for choosing devices.\n" )
+        unless defined $pred;
+
+    croak( "Predicate must be a code reference.\n" )
+        unless 'CODE' eq ref $pred;
+
+    local $_;
+
+    my @devices = grep { $pred->() } $self->devices();
+
+    return wantarray ? @devices : \@devices;
 }
 
 =back

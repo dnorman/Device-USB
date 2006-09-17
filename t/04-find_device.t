@@ -1,5 +1,7 @@
 #!perl -T
 
+use lib "t";
+use TestTools;
 use Test::More tests => 8;
 use Device::USB;
 
@@ -34,6 +36,8 @@ SKIP:
     for(my $i = 1; $i < $count; ++$i)
     {
         my $dev = find_an_installed_device( $i, @{$busses} );
+        next unless defined $dev;
+
         # New vendor/product combination
         if($vendor != $dev->idVendor() || $product != $dev->idProduct())
         {
@@ -41,6 +45,8 @@ SKIP:
             last;
         }
     }
+
+    skip "No accessible device found", 2 unless defined $found_device;
     $vendor = $found_device->idVendor();
     $product = $found_device->idProduct();
 
@@ -50,15 +56,3 @@ SKIP:
     is_deeply( $dev, $found_device, "second device matches" );
 }
 
-
-sub find_an_installed_device
-{
-    my $which = shift;
-    foreach my $bus (@_)
-    {
-        next unless @{$bus->devices()};
-	return $bus->devices()->[0] unless $which--;
-    }
-
-    return;
-}

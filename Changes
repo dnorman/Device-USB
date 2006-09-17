@@ -1,5 +1,9 @@
 Revision history for Device-USB
 
+0.18    2006/09/17
+        Added CLASS_* constants to the Device::USB module.
+        Added class support for the configuration objects.
+        Try again to fix assumption in tests, this time found by Ray Brinzer.
 0.17    2006/09/04
         Added FAQ document. Added new Device::USB::list_devices_if() and
         Device::USB::find_device_if() methods for more flexible device

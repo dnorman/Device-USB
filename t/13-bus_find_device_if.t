@@ -6,35 +6,39 @@ use Test::More tests => 11;
 use Device::USB;
 
 my $usb = Device::USB->new();
-
 ok( defined $usb, "Object successfully created" );
-can_ok( $usb, "find_device_if" );
 
-ok( !defined $usb->find_device_if(
+my $bus = ($usb->list_busses())[0];
+
+ok( defined $bus, "Object successfully created" );
+can_ok( $bus, "find_device_if" );
+
+ok( !defined $bus->find_device_if(
             sub { 0xFFFF == $_->idVendor() && 0xFFFF == $_->idProduct() }
         ),
     "No device found"
 );
 
-eval { $usb->find_device_if() };
+eval { $bus->find_device_if() };
 like( $@, qr/Missing predicate/, "Requires a predicate." );
 
-eval { $usb->find_device_if( 1 ) };
+eval { $bus->find_device_if( 1 ) };
 like( $@, qr/Predicate must be/, "Requires a code reference." );
 
 my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
 
-my $found_device = find_an_installed_device( 0, @{$busses} );
+my ($found_bus, $found_device) =
+    find_an_installed_device_and_bus( 0, @{$busses} );
 
 SKIP:
 {
-    skip "No USB devices installed", 5 unless defined $found_device;
+    skip "No USB devices installed", 4 unless defined $found_device;
 
     my $vendor = $found_device->idVendor();
     my $product = $found_device->idProduct();
 
-    my $dev = $usb->find_device_if(
+    my $dev = $found_bus->find_device_if(
         sub { $vendor == $_->idVendor() && $product == $_->idProduct() }
     );
 
@@ -42,38 +46,20 @@ SKIP:
     is_deeply( $dev, $found_device, "first device matches" );
 
     my $count = @{$busses};
-    skip "Only one USB device installed", 3 if $count < 2;
+    skip "Only one USB device installed", 2 if $count < 2;
 
-    $found_device = undef;
-    for(my $i = 1; $i < $count; ++$i)
-    {
-        my $dev = find_an_installed_device( $i, @{$busses} );
-        next unless defined $dev;
+    ($found_bus, $found_device) =
+        find_an_installed_device_and_bus( 1, @{$busses} );
 
-        # New vendor/product combination
-        if($vendor != $dev->idVendor() || $product != $dev->idProduct())
-        {
-            $found_device = $dev;
-            last;
-        }
-    }
-
-    skip "No accessible device found", 3 unless defined $found_device;
+    skip "No accessible device found", 2 unless defined $found_device;
     $vendor = $found_device->idVendor();
     $product = $found_device->idProduct();
 
-    $dev = $usb->find_device_if(
+    $dev = $found_bus->find_device_if(
         sub { $vendor == $_->idVendor() && $product == $_->idProduct() }
     );
 
     ok( defined $dev, "Device found." );
     is_deeply( $dev, $found_device, "second device matches" );
-
-    my $hub = $usb->find_device_if(
-        sub { Device::USB::CLASS_HUB == $_->bDeviceClass() }
-    );
-    ok( $hub && Device::USB::CLASS_HUB == $hub->bDeviceClass(),
-        "Hub found."
-    );
 }
 

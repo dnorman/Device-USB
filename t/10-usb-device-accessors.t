@@ -1,15 +1,19 @@
 #!perl -T
 
-use Test::More qw(no_plan);
+use Test::More;
 use Device::USB;
-
-#
-# No plan, because the number of tests depends on the number of
-#  busses and devices on the system.
-#
+use constant TESTS_PER_DEVICE => 14;
 
 my $usb = Device::USB->new();
-ok( defined $usb, "Object successfully created" );
+if(defined $usb)
+{
+    my @devices = $usb->list_devices();
+    plan tests => 2 + TESTS_PER_DEVICE * scalar @devices;
+}
+else
+{
+    fail( "Unable to create USB object." );
+}
 
 my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
@@ -42,3 +46,4 @@ foreach my $bus (@{$busses})
 	    "$filename: number of configurations matches" );
     }
 }
+

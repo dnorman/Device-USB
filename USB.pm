@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
 	NAME => 'Device::USB',
-	VERSION => '0.17',
+	VERSION => '0.18',
    );
 
 Inline->init();
@@ -19,7 +19,18 @@ Inline->init();
 #
 
 use Device::USB::Device;
+use Device::USB::DevConfig;
 use Device::USB::Bus;
+
+use constant CLASS_PER_INSTANCE => 0;
+use constant CLASS_AUDIO => 1;
+use constant CLASS_COMM =>  2;
+use constant CLASS_HID =>   3;
+use constant CLASS_PRINTER => 7;
+use constant CLASS_MASS_STORAGE => 8;
+use constant CLASS_HUB =>     9;
+use constant CLASS_DATA =>   10;
+use constant CLASS_VENDOR_SPEC => 0xff;
 
 =head1 NAME
 
@@ -27,11 +38,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.17
+Version 0.18
 
 =cut
 
-our $VERSION='0.17';
+our $VERSION='0.18';
 
 
 =head1 SYNOPSIS
@@ -98,6 +109,51 @@ functions of the libusb library. In particular, it provides interfaces to
 find busses and devices. It also provides convenience methods that simplify
 some of the tasks above.
 
+=head2 CONSTANTS
+
+This class provides a set of constants for the defined device classes. The
+constants defined at this time are:
+
+=over 4
+
+=item *
+
+CLASS_PER_INSTANCE
+
+=item *
+
+CLASS_AUDIO
+
+=item *
+
+CLASS_COMM
+
+=item *
+
+CLASS_HID
+
+=item *
+
+CLASS_PRINTER
+
+=item *
+
+CLASS_MASS_STORAGE
+
+=item *
+
+CLASS_HUB
+
+=item *
+
+CLASS_DATA
+
+=item *
+
+CLASS_VENDOR_SPEC
+
+=back
+
 =head2 FUNCTIONS
 
 =over 4
@@ -135,7 +191,7 @@ interface code.
 
 =over 4
 
-=item $level
+=item level
 
 0 disables debugging, 1 enables some debug messages, and 2 enables verbose
 debug messages
@@ -239,14 +295,10 @@ sub find_device_if
     croak( "Predicate must be a code reference.\n" )
         unless 'CODE' eq ref $pred;
 
-    local $_;
-
     foreach my $bus ($self->list_busses())
     {
-        foreach($bus->devices())
-        {
-            return $_ if $pred->();
-        }
+        my $dev = $bus->find_device_if( $pred );
+        return $dev if defined $dev;
     }
 
     return;
@@ -317,12 +369,11 @@ coderef to test devices.
 For example,
 
     my @devices = $usb->list_devices_if(
-        sub { 9 == $_->bDeviceClass() }
+        sub { Device::USB::CLASS_HUB == $_->bDeviceClass() }
     );
 
-Returns all USB hubs found, because the device class for hub is 9. The
-device to test is available to the coderef in the C<$_> variable for
-simplicity.
+Returns all USB hubs found. The device to test is available to the coderef
+in the C<$_> variable for simplicity.
 
 =cut
 
@@ -343,7 +394,7 @@ sub list_devices_if
     foreach my $bus ($self->list_busses())
     {
         # Push all matching devices for this bus on list.
-        push @devices, grep { $pred->() } $bus->devices();
+        push @devices, $bus->list_devices_if( $pred );
     }
 
     return wantarray ? @devices : \@devices;
@@ -423,15 +474,18 @@ compiling the module on Windows. In theory, it should be possible to make
 the library work with LibUsb-Win32 L<http://libusb-win32.sourceforge.net/>.
 Without access to a Windows development system, I can't make those changes.
 
+The Interfaces and Endpoints are not yet proper objects. The code to extract
+this information is not yet written.
+
 =head1 ACKNOWLEDGEMENTS
 
 Thanks go to various members of the Houston Perl Mongers group for input
 on the module. But thanks mostly go to Paul Archer who proposed the project
 and helped with the development.
 
-Thanks to Josep Monés Teixidor for fixing the \C<bInterfaceClass> bug.
-Thanks to Mike McCauley for support of \C<usb_get_driver_np> and
-\C<usb_detach_kernel_driver_np>.
+Thanks to Josep Monés Teixidor for fixing the C<bInterfaceClass> bug.
+Thanks to Mike McCauley for support of C<usb_get_driver_np> and
+C<usb_detach_kernel_driver_np>.
 
 =head1 COPYRIGHT & LICENSE
 
@@ -790,6 +844,28 @@ static SV* list_interfaces( struct usb_interface* ints, unsigned count )
     return newRV_noinc( (SV*)array );
 }
 
+/*
+ * Given a pointer to a usb_config_descriptor struct, create a Perl
+ * object that contains the same data.
+ */
+static SV* build_configuration( struct usb_config_descriptor *cfg )
+{
+    HV* hash = newHV();
+    hashStoreInt( hash, "bDescriptorType", cfg->bDescriptorType );
+    hashStoreInt( hash, "wTotalLength", cfg->wTotalLength );
+    hashStoreInt( hash, "bNumInterfaces", cfg->bNumInterfaces );
+    hashStoreInt( hash, "bConfigurationValue", cfg->bConfigurationValue );
+    hashStoreInt( hash, "iConfiguration", cfg->iConfiguration );
+    hashStoreInt( hash, "bmAttributes", cfg->bmAttributes );
+    hashStoreInt( hash, "MaxPower", cfg->MaxPower*2 );
+    hashStoreSV( hash, "interfaces",
+        list_interfaces( cfg->interface, cfg->bNumInterfaces )
+    );
+
+    return sv_bless( newRV_noinc( (SV*)hash ),
+        gv_stashpv( "Device::USB::DevConfig", 1 )
+    );
+}
 
 /*
  * Given a pointer to an array of usb_config_descriptor structs, create a
@@ -798,22 +874,11 @@ static SV* list_interfaces( struct usb_interface* ints, unsigned count )
 static SV* list_configurations(struct usb_config_descriptor *cfg, unsigned count )
 {
     AV* array = newAV();
-    HV* hash = 0;
     unsigned i= 0;
 
     for(i=0; i < count; ++i)
     {
-        av_push( array, newRV_noinc( (SV*)(hash = newHV()) ) );
-        hashStoreInt( hash, "bDescriptorType", cfg[i].bDescriptorType );
-        hashStoreInt( hash, "wTotalLength", cfg[i].wTotalLength );
-        hashStoreInt( hash, "bNumInterfaces", cfg[i].bNumInterfaces );
-        hashStoreInt( hash, "bConfigurationValue", cfg[i].bConfigurationValue );
-        hashStoreInt( hash, "iConfiguration", cfg[i].iConfiguration );
-        hashStoreInt( hash, "bmAttributes", cfg[i].bmAttributes );
-        hashStoreInt( hash, "MaxPower", cfg[i].MaxPower );
-	hashStoreSV( hash, "interfaces",
-	    list_interfaces( cfg[i].interface, cfg[i].bNumInterfaces )
-	);
+        av_push( array, build_configuration( (cfg+i) ) );
     }
 
     return newRV_noinc( (SV*)array );
