@@ -49,7 +49,7 @@ my $usb = Device::USB->new();
 
 if(@ARGV)
 {
-    my $dev = $usb->find_device( map { /^0/ ? oct( $_ ) : $_ } @ARGV[0,1] );
+    my $dev = $usb->find_device( map { /^0/x ? oct( $_ ) : $_ } @ARGV[0,1] );
     die "Device not found.\n" unless defined $dev;
 
     print "Device found: ", $dev->filename(), ": ";

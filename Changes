@@ -1,5 +1,9 @@
 Revision history for Device-USB
 
+0.19    2006/09/18
+        Modified Inline::C code to be correct C. (repoerted by Craig DeForest.)
+        Changes Device::USB::Device interface to automatically open the
+        USB device if needed, as requested by Ray Brinzer.
 0.18    2006/09/17
         Added CLASS_* constants to the Device::USB module.
         Added class support for the configuration objects.

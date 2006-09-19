@@ -8,8 +8,8 @@ use Carp;
 use Inline (
         C => "DATA",
         LIBS => '-lusb',
-	NAME => 'Device::USB',
-	VERSION => '0.18',
+        NAME => 'Device::USB',
+        VERSION => '0.19',
    );
 
 Inline->init();
@@ -38,11 +38,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.18
+Version 0.19
 
 =cut
 
-our $VERSION='0.18';
+our $VERSION='0.19';
 
 
 =head1 SYNOPSIS
@@ -389,7 +389,7 @@ sub list_devices_if
         unless 'CODE' eq ref $pred;
 
     my @devices = ();
-    local $_;
+    local $_ = undef;
 
     foreach my $bus ($self->list_busses())
     {
@@ -570,7 +570,7 @@ int libusb_reset(void *dev)
 
 int libusb_get_driver_np(void *dev, int interface, char *name, unsigned int namelen)
 {
-    int ret;
+    int ret = 0;
     if(debugLevel)
     {
         printf( "libusb_get_driver_np( %d )\n", interface );
@@ -618,15 +618,16 @@ int libusb_release_interface(void *dev, int interface)
 void libusb_control_msg(void *dev, int requesttype, int request, int value, int index, char *bytes, int size, int timeout)
 {
     int i = 0;
+    int retval = 0;
 
     if(debugLevel)
     {
         printf( "libusb_control_msg( %#04x, %#04x, %#04x, %#04x, %p, %d, %d )\n",
             requesttype, request, value, index, bytes, size, timeout
         );
-	/* maybe need to add support for printing the bytes string. */
+        /* maybe need to add support for printing the bytes string. */
     }
-    int retval = usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
+    retval = usb_control_msg((usb_dev_handle *)dev, requesttype, request, value, index, bytes, size, timeout);
     if(debugLevel)
     {
         printf( "\t => %d\n",retval );
@@ -661,8 +662,8 @@ int libusb_get_string(void *dev, int index, int langid, char *buf, size_t buflen
     if(debugLevel)
     {
         printf( "libusb_get_string( %d, %d, %p, %u )\n",
-	    index, langid, buf, buflen
-	);
+            index, langid, buf, buflen
+        );
     }
     return usb_get_string((usb_dev_handle *)dev, index, langid, buf, buflen);
 }
@@ -672,8 +673,8 @@ int libusb_get_string_simple(void *dev, int index, char *buf, size_t buflen)
     if(debugLevel)
     {
         printf( "libusb_get_string_simple( %d, %p, %u )\n",
-	    index, buf, buflen
-	);
+            index, buf, buflen
+        );
     }
     return usb_get_string_simple((usb_dev_handle *)dev, index, buf, buflen);
 }
@@ -788,7 +789,7 @@ static SV* list_endpoints( struct usb_endpoint_descriptor* endpt, unsigned count
 {
     AV* array = newAV();
     HV* hash = 0;
-    unsigned i= 0;
+    unsigned i = 0;
 
     for(i=0; i < count; ++i)
     {
@@ -832,13 +833,13 @@ static SV* list_interfaces( struct usb_interface* ints, unsigned count )
 {
     AV* array = newAV();
     HV* hash = 0;
-    unsigned i= 0;
+    unsigned i = 0;
 
     for(i=0; i < count; ++i)
     {
         av_push( array, newRV_noinc( (SV*)(hash = newHV()) ) );
         hashStoreInt( hash, "num_altsetting", ints[i].num_altsetting );
-	store_interface( hash, ints[i].altsetting );
+        store_interface( hash, ints[i].altsetting );
     }
 
     return newRV_noinc( (SV*)array );
@@ -874,7 +875,7 @@ static SV* build_configuration( struct usb_config_descriptor *cfg )
 static SV* list_configurations(struct usb_config_descriptor *cfg, unsigned count )
 {
     AV* array = newAV();
-    unsigned i= 0;
+    unsigned i = 0;
 
     for(i=0; i < count; ++i)
     {
@@ -989,13 +990,13 @@ SV *lib_find_usb_device( int vendor, int product )
     {
         struct usb_device *dev = 0;
         for(dev = bus->devices; 0 != dev; dev = dev->next)
-	{
+        {
             if((dev->descriptor.idVendor == vendor) &&
-	      (dev->descriptor.idProduct == product))
-	    {
+              (dev->descriptor.idProduct == product))
+            {
                 return build_device( dev );
             }
-	}
+        }
     }
 
     return &PL_sv_undef;

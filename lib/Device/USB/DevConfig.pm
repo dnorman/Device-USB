@@ -59,6 +59,7 @@ Each is named after the field that they return. These accessors include:
 sub _make_descr_accessor
 {
     my $name = shift;
+    ## no critic (ProhibitStringyEval)
 
     return eval qq{sub $name
         {

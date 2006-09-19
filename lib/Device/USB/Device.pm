@@ -18,11 +18,11 @@ Device::USB::Device - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =cut
 
-our $VERSION=0.15;
+our $VERSION=0.16;
 
 
 =head1 SYNOPSIS
@@ -36,7 +36,6 @@ using the libusb library.
     my $dev = $usb->find_device( $VENDOR, $PRODUCT );
 
     printf "Device: %04X:%04X\n", $dev->idVendor(), $dev->idProduct();
-    $dev->open();
     print "Manufactured by ", $dev->manufacturer(), "\n",
           " Product: ", $dev->product(), "\n";
 
@@ -74,10 +73,23 @@ sub DESTROY
     return;
 }
 
+# Make certain the device is open.
+sub _assert_open
+{
+    my $self = shift;
+
+    if(!defined $self->{handle})
+    {
+        $self->open() or croak "Cannot open device: $!\n";
+    }
+}
+
+
 # I need to build a lot of accessors
 sub _make_descr_accessor
 {
     my $name = shift;
+    ## no critic (ProhibitStringyEval)
 
     return eval qq{sub $name
         {
@@ -166,8 +178,8 @@ _make_descr_accessor( 'bNumConfigurations' );
 
 =item manufacturer
 
-Retrieve the manufacture name from the device as a string. The device must be
-open for this function to work. Return undef if the device read fails.
+Retrieve the manufacture name from the device as a string.
+Return undef if the device read fails.
 
 =cut
 
@@ -180,8 +192,8 @@ sub manufacturer
 
 =item product
 
-Retrieve the product name from the device as a string. The device must be
-open for this function to work. Return undef if the device read fails.
+Retrieve the product name from the device as a string.
+Return undef if the device read fails.
 
 =cut
 
@@ -194,8 +206,8 @@ sub product
 
 =item serial_number
 
-Retrieve the serial nubmer from the device as a string. The device must be
-open for this function to work. Return undef if the device read fails.
+Retrieve the serial number from the device as a string.
+Return undef if the device read fails.
 
 =cut
 
@@ -214,10 +226,11 @@ If the device fails to open, the reason will be available in $!.
 
 =cut
 
-sub open
+sub open  ## no critic (ProhibitBuiltinHomonyms)
 {
     my $self = shift;
     Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
+    $! = 0;
     $self->{handle} = Device::USB::libusb_open( $self->{device} );
 
     return 0 == $!;
@@ -243,6 +256,7 @@ sub set_configuration
 {
     my $self = shift;
     my $configuration = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_set_configuration( $self->{handle}, $configuration );
 }
@@ -267,6 +281,7 @@ sub set_altinterface
 {
     my $self = shift;
     my $alternate = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_set_altinterface( $self->{handle}, $alternate );
 }
@@ -291,6 +306,7 @@ sub clear_halt
 {
     my $self = shift;
     my $ep = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_clear_halt( $self->{handle}, $ep );
 }
@@ -302,11 +318,16 @@ This device will be unusable.
 
 =cut
 
-sub reset
+sub reset  ## no critic (ProhibitBuiltinHomonyms)
 {
     my $self = shift;
 
-    return Device::USB::libusb_reset( $self->{handle} );
+    return 0 unless defined $self->{handle};
+
+    my $ret = Device::USB::libusb_reset( $self->{handle} );
+    delete $self->{handle} unless $ret;
+
+    return $ret;
 }
 
 =item claim_interface
@@ -329,6 +350,7 @@ sub claim_interface
 {
     my $self = shift;
     my $interface = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_claim_interface( $self->{handle}, $interface );
 }
@@ -353,6 +375,7 @@ sub release_interface
 {
     my $self = shift;
     my $interface = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_release_interface( $self->{handle}, $interface );
 }
@@ -395,6 +418,7 @@ sub control_msg
     my $self = shift;
     my ($requesttype, $request, $value, $index, $bytes, $size, $timeout) = @_;
     $bytes = "" unless defined $bytes;
+    $self->_assert_open();
 
     my ($retval, $out) = Device::USB::libusb_control_msg(
             $self->{handle}, $requesttype, $request, $value,
@@ -430,6 +454,7 @@ sub get_string
 {
     my $self = shift;
     my ($index, $langid) = @_;
+    $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
@@ -462,9 +487,9 @@ sub get_string_simple
 {
     my $self = shift;
     my $index = shift;
+    $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
-
 
     my $retlen = Device::USB::libusb_get_string_simple(
         $self->{handle}, $index, $buf, MAX_BUFFER_SIZE
@@ -502,6 +527,7 @@ sub get_descriptor
 {
     my $self = shift;
     my ($type, $index) = @_;
+    $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
@@ -553,6 +579,7 @@ sub get_descriptor_by_endpoint
 {
     my $self = shift;
     my ($ep, $type, $index) = @_;
+    $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
@@ -597,6 +624,7 @@ sub bulk_read
 {
     my $self = shift;
     my ($ep, $bytes, $size, $timeout) = @_;
+    $self->_assert_open();
 
     if(length $bytes < $size)
     {
@@ -645,6 +673,7 @@ sub interrupt_read
 {
     my $self = shift;
     my ($ep, $bytes, $size, $timeout) = @_;
+    $self->_assert_open();
 
     if(length $bytes < $size)
     {
@@ -693,6 +722,7 @@ sub bulk_write
 {
     my $self = shift;
     my ($ep, $bytes, $timeout) = @_;
+    $self->_assert_open();
 
     return Device::USB::libusb_bulk_write(
         $self->{handle}, $ep, $bytes, length $bytes, $timeout
@@ -731,6 +761,7 @@ sub interrupt_write
 {
     my $self = shift;
     my ($ep, $bytes, $timeout) = @_;
+    $self->_assert_open();
 
     return Device::USB::libusb_interrupt_write(
         $self->{handle}, $ep, $bytes, length $bytes, $timeout
@@ -758,6 +789,7 @@ sub get_driver_np
 {
     my $self = shift;
     my ($interface, $name) = @_;
+    $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
@@ -783,6 +815,7 @@ sub detach_kernel_driver_np
 {
     my $self = shift;
     my $interface = shift;
+    $self->_assert_open();
 
     return Device::USB::libusb_detach_kernel_driver_np(
         $self->{handle}, $interface
@@ -795,6 +828,14 @@ sub detach_kernel_driver_np
 
 This is an explanation of the diagnostic and error messages this module
 can generate.
+
+=over 4
+
+=item Cannot open device: I<reason string>
+
+Unable to open the USB device for the reason given.
+
+=back
 
 =head1 DEPENDENCIES
 

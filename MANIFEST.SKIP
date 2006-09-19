@@ -10,3 +10,4 @@ images/.*
 ^Makefile$
 ^usb-sh$
 ^synchtest.pl$
+^Device-USB-.*\.tar\.gz$

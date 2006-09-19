@@ -35,9 +35,9 @@ supports Perl code controlling and accessing USB devices.
     {
         print $bus->dirname(), ":\n";
         foreach my $dev ($bus->devices())
-	{
-	    print "\t", $dev->filename(), "\n";
-	}
+        {
+            print "\t", $dev->filename(), "\n";
+        }
     }
 
 
@@ -121,7 +121,7 @@ sub find_device_if
     croak( "Predicate must be a code reference.\n" )
         unless 'CODE' eq ref $pred;
 
-    local $_;
+    local $_ = undef;
 
     foreach($self->devices())
     {
@@ -167,7 +167,7 @@ sub list_devices_if
     croak( "Predicate must be a code reference.\n" )
         unless 'CODE' eq ref $pred;
 
-    local $_;
+    local $_ = undef;
 
     my @devices = grep { $pred->() } $self->devices();
 
