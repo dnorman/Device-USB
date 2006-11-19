@@ -1,7 +1,14 @@
 Revision history for Device-USB
 
+0.20    2006/11/18
+        Added support for interface objects and corrected the code
+        returning the code. Previous versions had only returned the first
+        setting of the interface.
+        Deprecate the Device::USB::Device::config method as badly named and
+        incomplete. Replaced with Device::USB::Device::configurations and
+        Device::USB::Device::get_configuration.
 0.19    2006/09/18
-        Modified Inline::C code to be correct C. (repoerted by Craig DeForest.)
+        Modified Inline::C code to be correct C. (reported by Craig DeForest.)
         Changes Device::USB::Device interface to automatically open the
         USB device if needed, as requested by Ray Brinzer.
 0.18    2006/09/17
@@ -29,13 +36,13 @@ Revision history for Device-USB
 0.12    2006/05/08
         Fixed a bug that prevented Device::USB::Device::control_msg() from
         returning data.
-0.11	2006/04/05
-	Correct some typing errors in the documentation.
-	Correct return code on Device::USB::Device::open().
+0.11    2006/04/05
+        Correct some typing errors in the documentation.
+        Correct return code on Device::USB::Device::open().
 0.10    2006/04/01
-	Build test suite and shake out bugs with testing.
-0.03	2006/03/27
+        Build test suite and shake out bugs with testing.
+0.03    2006/03/27
         Rename to Device::USB with permission of the owner of that module.
-	(Not released)
+        (Not released)
 0.02    2006/03/25
         Mostly complete first version available for limited distribution.

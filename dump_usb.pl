@@ -2,6 +2,7 @@
 
 use Device::USB;
 use Data::Dumper;
+use Carp;
 use strict;
 use warnings;
 
@@ -46,17 +47,19 @@ and product name as reported by the device.
 =cut
 
 my $usb = Device::USB->new();
+$Data::Dumper::Indent = 1; ## no critic(ProhibitPackageVars)
 
 if(@ARGV)
 {
-    my $dev = $usb->find_device( map { /^0/x ? oct( $_ ) : $_ } @ARGV[0,1] );
-    die "Device not found.\n" unless defined $dev;
+    my $dev = $usb->find_device( map { /^0/xm ? oct( $_ ) : $_ } @ARGV[0,1] );
+    croak "Device not found.\n" unless defined $dev;
 
     print "Device found: ", $dev->filename(), ": ";
     printf "ID %04x:%04x\n", $dev->idVendor(), $dev->idProduct();
     if($dev->open())
     {
         print "\t", $dev->manufacturer(), ": ", $dev->product(), "\n";
+        print Dumper( $dev );
     }
     else
     {

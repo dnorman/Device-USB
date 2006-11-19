@@ -2,6 +2,8 @@
 
 use Test::More;
 use Device::USB;
+use strict;
+use warnings;
 use constant TESTS_PER_CONFIGURATION => 7;
 
 my $usb = Device::USB->new();
@@ -24,22 +26,22 @@ isnt( scalar @devices, 0, "USB devices found" );
 
 can_ok( "Device::USB::DevConfig",
         qw/wTotalLength bNumInterfaces interfaces bConfigurationValue
-	   iConfiguration bmAttributes MaxPower/
+           iConfiguration bmAttributes MaxPower/
 );
 
 foreach my $dev (@devices)
 {
     my $filename = $dev->filename();
     my $cfgno = 0;
-    foreach my $cfg ($dev->config())
+    foreach my $cfg ($dev->configurations())
     {
         isa_ok( $cfg, "Device::USB::DevConfig" );
-	like( $cfg->wTotalLength(), qr/^\d+$/, "$filename:$cfgno: USB Version" );
+        like( $cfg->wTotalLength(), qr/^\d+$/, "$filename:$cfgno: USB Version" );
         is( $cfg->bNumInterfaces(), scalar @{$cfg->interfaces()}, "$filename:$cfgno: interface count" );
-	like( $cfg->bConfigurationValue(), qr/^\d+$/, "$filename:$cfgno: configuration value" );
-	like( $cfg->iConfiguration(), qr/^\d+$/, "$filename:$cfgno: configuration" );
-	like( $cfg->bmAttributes(), qr/^\d+$/, "$filename:$cfgno: Attributes" );
-	like( $cfg->MaxPower(), qr/^\d+$/, "$filename:$cfgno: max power" );
+        like( $cfg->bConfigurationValue(), qr/^\d+$/, "$filename:$cfgno: configuration value" );
+        like( $cfg->iConfiguration(), qr/^\d+$/, "$filename:$cfgno: configuration" );
+        like( $cfg->bmAttributes(), qr/^\d+$/, "$filename:$cfgno: Attributes" );
+        like( $cfg->MaxPower(), qr/^\d+$/, "$filename:$cfgno: max power" );
         ++$cfgno;
     }
 }

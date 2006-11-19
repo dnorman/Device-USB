@@ -18,11 +18,11 @@ Device::USB::Device - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.16
+Version 0.17
 
 =cut
 
-our $VERSION=0.16;
+our $VERSION=0.17;
 
 
 =head1 SYNOPSIS
@@ -82,6 +82,7 @@ sub _assert_open
     {
         $self->open() or croak "Cannot open device: $!\n";
     }
+    return;
 }
 
 
@@ -114,7 +115,8 @@ sub filename
 =item config
 
 In list context, return a list of the configuration structures for this device.
-In scalar context, return a reference to that list.
+In scalar context, return a reference to that list. This method is deprecated
+in favor of the two new methods: configurations and get_configuration.
 
 =cut
 
@@ -122,6 +124,43 @@ sub config
 {
     my $self = shift;
     return wantarray ? @{$self->{config}} : $self->{config};
+}
+
+=item configurations
+
+In list context, return a list of the configuration structures for this device.
+In scalar context, return a reference to that list.
+
+=cut
+
+sub configurations
+{
+    my $self = shift;
+    return wantarray ? @{$self->{config}} : $self->{config};
+}
+
+=item get_configuration
+
+Retrieve the configuration requested by index. The legal values are from 0
+to bNumConfigurations() - 1. Negative values access from the back of the list
+of configurations.
+
+=over 4
+
+=item index numeric index of the index to return. If not supplied, use 0.
+
+=back
+
+Returns an object encapsulating the configuration on success, or C<undef> on
+failure.
+
+=cut
+
+sub get_configuration
+{
+    my $self = shift;
+    my $index = shift || 0;
+    return $self->configurations()->[$index];
 }
 
 =item accessors

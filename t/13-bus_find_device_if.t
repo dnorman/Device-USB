@@ -4,6 +4,8 @@ use lib "t";
 use TestTools;
 use Test::More tests => 11;
 use Device::USB;
+use strict;
+use warnings;
 
 my $usb = Device::USB->new();
 ok( defined $usb, "Object successfully created" );
@@ -29,7 +31,7 @@ my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
 
 my ($found_bus, $found_device) =
-    find_an_installed_device_and_bus( 0, @{$busses} );
+    TestTools::find_an_installed_device_and_bus( 0, @{$busses} );
 
 SKIP:
 {
@@ -49,7 +51,7 @@ SKIP:
     skip "Only one USB device installed", 2 if $count < 2;
 
     ($found_bus, $found_device) =
-        find_an_installed_device_and_bus( 1, @{$busses} );
+        TestTools::find_an_installed_device_and_bus( 1, @{$busses} );
 
     skip "No accessible device found", 2 unless defined $found_device;
     $vendor = $found_device->idVendor();

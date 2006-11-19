@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
         NAME => 'Device::USB',
-        VERSION => '0.19',
+        VERSION => '0.20',
    );
 
 Inline->init();
@@ -20,6 +20,8 @@ Inline->init();
 
 use Device::USB::Device;
 use Device::USB::DevConfig;
+use Device::USB::DevInterface;
+use Device::USB::DevEndpoint;
 use Device::USB::Bus;
 
 use constant CLASS_PER_INSTANCE => 0;
@@ -38,11 +40,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.19
+Version 0.20
 
 =cut
 
-our $VERSION='0.19';
+our $VERSION='0.20';
 
 
 =head1 SYNOPSIS
@@ -782,40 +784,59 @@ static SV* build_descriptor(struct usb_device *dev)
 }
 
 /*
+ * Given a pointer to a usb_endpoint_descriptor struct, create a reference
+ * to a Device::USB::DevEndpoint object that represents it.
+ */
+static SV* build_endpoint( struct usb_endpoint_descriptor* endpt )
+{
+    HV* hash = newHV();
+
+    hashStoreInt( hash, "bDescriptorType", endpt->bDescriptorType );
+    hashStoreInt( hash, "bEndpointAddress", endpt->bEndpointAddress );
+    hashStoreInt( hash, "bmAttributes", endpt->bmAttributes );
+    hashStoreInt( hash, "wMaxPacketSize", endpt->wMaxPacketSize );
+    hashStoreInt( hash, "bInterval", endpt->bInterval );
+    hashStoreInt( hash, "bRefresh", endpt->bRefresh );
+    hashStoreInt( hash, "bSynchAddress", endpt->bSynchAddress );
+
+    return sv_bless( newRV_noinc( (SV*)hash ),
+        gv_stashpv( "Device::USB::DevEndpoint", 1 )
+    );
+}
+
+/*
  * Given a pointer to an array of usb_endpoint_descriptor structs, create a
  * reference to a Perl array containing the same data.
  */
 static SV* list_endpoints( struct usb_endpoint_descriptor* endpt, unsigned count )
 {
     AV* array = newAV();
-    HV* hash = 0;
     unsigned i = 0;
 
     for(i=0; i < count; ++i)
     {
-        av_push( array, newRV_noinc( (SV*)(hash = newHV()) ) );
-        hashStoreInt( hash, "bDescriptorType", endpt[i].bDescriptorType );
-        hashStoreInt( hash, "bEndpointAddress", endpt[i].bEndpointAddress );
-        hashStoreInt( hash, "bmAttributes", endpt[i].bmAttributes );
-        hashStoreInt( hash, "wMaxPacketSize ", endpt[i].wMaxPacketSize );
-        hashStoreInt( hash, "bInterval", endpt[i].bInterval );
-        hashStoreInt( hash, "bRefresh", endpt[i].bRefresh );
-        hashStoreInt( hash, "bSynchAddress", endpt[i].bSynchAddress );
+        av_push( array, build_endpoint( endpt+i ) );
     }
 
     return newRV_noinc( (SV*)array );
 }
 
+
 /*
- * Given a pointer to a usb_interface_descriptor, copy the data into the
- * supplied hash.
+ * Build the object that contains the interface descriptor.
+ *
+ * inter - the usb_interface_descriptor describing this interface.
+ *
+ * returns the appropriate pointer to a reference.
  */
-static void store_interface( HV* hash, struct usb_interface_descriptor* inter )
+static SV* build_interface( struct usb_interface_descriptor* inter )
 {
+    HV* hash = newHV();
+
     hashStoreInt( hash, "bDescriptorType", inter->bDescriptorType );
     hashStoreInt( hash, "bInterfaceNumber", inter->bInterfaceNumber );
     hashStoreInt( hash, "bAlternateSetting", inter->bAlternateSetting );
-    hashStoreInt( hash, "bNumEndpoints ", inter->bNumEndpoints );
+    hashStoreInt( hash, "bNumEndpoints", inter->bNumEndpoints );
     hashStoreInt( hash, "bInterfaceClass", inter->bInterfaceClass );
     hashStoreInt( hash, "bInterfaceSubClass", inter->bInterfaceSubClass );
     hashStoreInt( hash, "bInterfaceProtocol", inter->bInterfaceProtocol );
@@ -823,7 +844,12 @@ static void store_interface( HV* hash, struct usb_interface_descriptor* inter )
     hashStoreSV( hash, "endpoints",
         list_endpoints( inter->endpoint, inter->bNumEndpoints )
     );
-}
+    /* TODO: handle the 'extra' data */
+
+    return sv_bless( newRV_noinc( (SV*)hash ),
+        gv_stashpv( "Device::USB::DevInterface", 1 )
+    );
+} 
 
 /*
  * Given a pointer to an array of usb_interface structs, create a
@@ -832,14 +858,17 @@ static void store_interface( HV* hash, struct usb_interface_descriptor* inter )
 static SV* list_interfaces( struct usb_interface* ints, unsigned count )
 {
     AV* array = newAV();
-    HV* hash = 0;
     unsigned i = 0;
 
     for(i=0; i < count; ++i)
     {
-        av_push( array, newRV_noinc( (SV*)(hash = newHV()) ) );
-        hashStoreInt( hash, "num_altsetting", ints[i].num_altsetting );
-        store_interface( hash, ints[i].altsetting );
+        AV* inters = newAV();
+        unsigned j = 0;
+        for(j=0; j < ints[i].num_altsetting; ++j)
+        {
+            av_push( inters, build_interface( (ints[i].altsetting+j) ) );
+        }
+        av_push( array, newRV_noinc( (SV*)inters ) );
     }
 
     return newRV_noinc( (SV*)array );

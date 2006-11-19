@@ -4,6 +4,8 @@ use lib "t";
 use TestTools;
 use Test::More tests => 11;
 use Device::USB;
+use strict;
+use warnings;
 
 my $usb = Device::USB->new();
 
@@ -25,7 +27,7 @@ like( $@, qr/Predicate must be/, "Requires a code reference." );
 my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
 
-my $found_device = find_an_installed_device( 0, @{$busses} );
+my $found_device = TestTools::find_an_installed_device( 0, @{$busses} );
 
 SKIP:
 {
@@ -47,7 +49,7 @@ SKIP:
     $found_device = undef;
     for(my $i = 1; $i < $count; ++$i)
     {
-        my $dev = find_an_installed_device( $i, @{$busses} );
+        my $dev = TestTools::find_an_installed_device( $i, @{$busses} );
         next unless defined $dev;
 
         # New vendor/product combination

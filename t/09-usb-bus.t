@@ -1,7 +1,9 @@
 #!perl -T
 
-use Test::More qw(no_plan);
+use Test::More qw(no_plan); ## no critic(ProhibitNoPlan)
 use Device::USB;
+use strict;
+use warnings;
 
 #
 # No plan, because the number of tests depends on the number of

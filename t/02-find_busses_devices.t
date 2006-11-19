@@ -2,6 +2,8 @@
 
 use Test::More tests => 4;
 use Device::USB;
+use strict;
+use warnings;
 
 my $usb = Device::USB->new();
 

@@ -16,11 +16,11 @@ Device::USB::DevConfig - Access the device configuration returned by libusb.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION=0.10;
+our $VERSION=0.11;
 
 =head1 SYNOPSIS
 
@@ -81,7 +81,17 @@ Returns the number of interfaces supported by this configuration.
 
 =item interfaces
 
-Returns a list of interface objects associated with this configuration.
+Returns a list of lists of interface objects associated with this
+configuration. Each of the inner lists is a set of alternate versions
+of that interface.
+
+=cut
+
+sub interfaces
+{
+    my $self = shift;
+    return wantarray ? @{$self->{interfaces}} : $self->{interfaces};
+}
 
 =item bConfigurationValue
 
@@ -110,7 +120,6 @@ Returns the Maximum power consumption in mA. This value is not in units of
 
 _make_descr_accessor( 'wTotalLength' );
 _make_descr_accessor( 'bNumInterfaces' );
-_make_descr_accessor( 'interfaces' );
 _make_descr_accessor( 'bConfigurationValue' );
 _make_descr_accessor( 'iConfiguration' );
 _make_descr_accessor( 'bmAttributes' );

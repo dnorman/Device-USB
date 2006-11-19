@@ -1,13 +1,14 @@
 #!perl -T
 
+use Test::More tests => 3;
+use Carp;
 use strict;
 use warnings;
-use Test::More tests => 3;
 
 sub not_in_file_ok {
     my ($filename, %regex) = @_;
     open my $fh, "<", $filename
-        or die "couldn't open $filename for reading: $!";
+        or croak "couldn't open $filename for reading: $!";
 
     my %violated;
 
@@ -25,6 +26,7 @@ sub not_in_file_ok {
     } else {
         pass("$filename contains no boilerplate text");
     }
+    return;
 }
 
 not_in_file_ok(README =>
@@ -43,6 +45,7 @@ sub module_boilerplate_ok {
         'boilerplate description'     => qr/Quick summary of what the module/,
         'stub function definition'    => qr/function[12]/,
     );
+    return;
 }
 
 module_boilerplate_ok('lib/Device/USB.pm');

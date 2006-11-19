@@ -11,3 +11,4 @@ images/.*
 ^usb-sh$
 ^synchtest.pl$
 ^Device-USB-.*\.tar\.gz$
+\d+_local_

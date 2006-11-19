@@ -1,5 +1,10 @@
+package TestTools;
+
 # Library utility for testing
 #
+
+use strict;
+use warnings;
 
 #
 # Find a particular unique installed device.
@@ -64,7 +69,5 @@ sub find_an_installed_device_and_bus
 
     return;
 }
-
-1;
 
 1;

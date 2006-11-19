@@ -3,7 +3,9 @@ dump_usb.pl
 lib/Device/USB.pm
 lib/Device/USB/Bus.pm
 lib/Device/USB/DevConfig.pm
+lib/Device/USB/DevEndpoint.pm
 lib/Device/USB/Device.pm
+lib/Device/USB/DevInterface.pm
 lib/Device/USB/FAQ.pod
 Makefile.PL
 MANIFEST
@@ -26,6 +28,9 @@ t/12-constants.t
 t/13-bus_find_device_if.t
 t/14-bus_list_devices_if.t
 t/15-usb_dev_configuration.t
+t/16-usb_dev_interface.t
+t/17-usb_dev_endpoint.t
+t/18-usb_device-configurations.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t

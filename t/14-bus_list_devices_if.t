@@ -4,7 +4,8 @@ use lib "t";
 use TestTools;
 use Test::More tests => 11;
 use Device::USB;
-use Data::Dumper;
+use strict;
+use warnings;
 
 my $usb = Device::USB->new();
 ok( defined $usb, "Object successfully created" );
@@ -23,7 +24,7 @@ my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
 
 my ($found_bus, $found_device) =
-    find_an_installed_device_and_bus( 0, @{$busses} );
+    TestTools::find_an_installed_device_and_bus( 0, @{$busses} );
 
 SKIP:
 {

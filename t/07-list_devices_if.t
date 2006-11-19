@@ -4,7 +4,8 @@ use lib "t";
 use TestTools;
 use Test::More tests => 11;
 use Device::USB;
-use Data::Dumper;
+use strict;
+use warnings;
 
 my $usb = Device::USB->new();
 
@@ -20,7 +21,7 @@ like( $@, qr/Predicate must be/, "Requires a code reference." );
 my $busses = $usb->list_busses();
 ok( defined $busses, "USB busses found" );
 
-my $found_device = find_an_installed_device( 0, @{$busses} );
+my $found_device = TestTools::find_an_installed_device( 0, @{$busses} );
 
 SKIP:
 {
@@ -62,5 +63,6 @@ sub check_classes
                 $dev->idVendor(), $dev->idProduct(),
                 $dev->bDeviceClass(), $dev->bDeviceSubClass() ), "\n";
     }
+    return;
 }
 
