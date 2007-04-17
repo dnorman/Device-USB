@@ -9,7 +9,7 @@ use Inline (
         C => "DATA",
         LIBS => '-lusb',
         NAME => 'Device::USB',
-        VERSION => '0.20',
+        VERSION => '0.21',
    );
 
 Inline->init();
@@ -40,11 +40,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.21
 
 =cut
 
-our $VERSION='0.20';
+our $VERSION='0.21';
 
 
 =head1 SYNOPSIS
@@ -487,11 +487,12 @@ and helped with the development.
 
 Thanks to Josep Monés Teixidor for fixing the C<bInterfaceClass> bug.
 Thanks to Mike McCauley for support of C<usb_get_driver_np> and
-C<usb_detach_kernel_driver_np>.
+C<usb_detach_kernel_driver_np>. Thanks to Vadim Mikhailov for fixing
+a compile problem with VC6 on Windows.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Houston Perl Mongers
+Copyright 2006-2007 Houston Perl Mongers
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -622,6 +623,8 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
     int i = 0;
     int retval = 0;
 
+    Inline_Stack_Vars;
+
     if(debugLevel)
     {
         printf( "libusb_control_msg( %#04x, %#04x, %#04x, %#04x, %p, %d, %d )\n",
@@ -634,8 +637,6 @@ void libusb_control_msg(void *dev, int requesttype, int request, int value, int 
     {
         printf( "\t => %d\n",retval );
     }
-
-    Inline_Stack_Vars;
 
     /* quiet compiler warnings. */
     (void)i;

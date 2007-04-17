@@ -456,7 +456,7 @@ sub control_msg
 {
     my $self = shift;
     my ($requesttype, $request, $value, $index, $bytes, $size, $timeout) = @_;
-    $bytes = "" unless defined $bytes;
+    $bytes = q{} unless defined $bytes;
     $self->_assert_open();
 
     my ($retval, $out) = Device::USB::libusb_control_msg(

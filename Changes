@@ -1,5 +1,9 @@
 Revision history for Device-USB
 
+0.21    2007/04/16
+        Thanks to Vadim Mikhailov for spotting a problem with use of the macro
+        Inline_Stack_Vars that prevented compilation under Windows. Applied
+        Vadim's patch.
 0.20    2006/11/18
         Added support for interface objects and corrected the code
         returning the code. Previous versions had only returned the first
