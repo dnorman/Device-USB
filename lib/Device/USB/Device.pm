@@ -18,11 +18,11 @@ Device::USB::Device - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.17
+Version 0.18
 
 =cut
 
-our $VERSION=0.17;
+our $VERSION=0.19;
 
 
 =head1 SYNOPSIS
@@ -92,12 +92,13 @@ sub _make_descr_accessor
     my $name = shift;
     ## no critic (ProhibitStringyEval)
 
-    return eval qq{sub $name
+    return eval <<"EOE";
+sub $name
         {
             my \$self = shift;
             return \$self->{descriptor}->{$name};
         }
-    };
+EOE
 }
 
 =item filename
@@ -269,7 +270,7 @@ sub open  ## no critic (ProhibitBuiltinHomonyms)
 {
     my $self = shift;
     Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
-    $! = 0;
+    local $! = 0;
     $self->{handle} = Device::USB::libusb_open( $self->{device} );
 
     return 0 == $!;
@@ -288,6 +289,11 @@ the integer specified in the descriptor field bConfigurationValue.
 =back
 
 returns 0 on success or <0 on error
+
+When using libusb-win32 under Windows, it is important to call
+C<set_configuration()> after the C<open()> but before any other method calls.
+Without this call, other methods may not work. This call is not required under
+Linux.
 
 =cut
 
@@ -455,6 +461,7 @@ Returns number of bytes read or written on success, <0 on failure.
 sub control_msg
 {
     my $self = shift;
+    ## no critic (RequireArgUnpacking)
     my ($requesttype, $request, $value, $index, $bytes, $size, $timeout) = @_;
     $bytes = q{} unless defined $bytes;
     $self->_assert_open();
@@ -492,7 +499,9 @@ Returns a Unicode string. The function returns undef on error.
 sub get_string
 {
     my $self = shift;
-    my ($index, $langid) = @_;
+    my $index = shift;
+    my $langid = shift;
+
     $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
@@ -565,7 +574,8 @@ a buffer of binary data.
 sub get_descriptor
 {
     my $self = shift;
-    my ($type, $index) = @_;
+    my $type = shift;
+    my $index = shift;
     $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
@@ -617,7 +627,10 @@ a buffer of binary data.
 sub get_descriptor_by_endpoint
 {
     my $self = shift;
-    my ($ep, $type, $index) = @_;
+    my $ep = shift;
+    my $type = shift;
+    my $index = shift;
+
     $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
@@ -657,12 +670,23 @@ Maximum time to wait (in milliseconds)
 
 The function returns the number of bytes returned or <0 on error.
 
+USB is packet based, not stream based. So using C<bulk_read()> to read part
+of the packet acts like a I<peek>. The next time you read, all of the packet
+is still there.
+
+The data is only removed when you read the entire packet. For this reason, you
+should always call C<bulk_read()> with the total packet size.
+
 =cut
 
 sub bulk_read
 {
     my $self = shift;
-    my ($ep, $bytes, $size, $timeout) = @_;
+    my $ep = shift;
+    my $bytes = shift;
+    my $size = shift;
+    my $timeout = shift;
+
     $self->_assert_open();
 
     if(length $bytes < $size)
@@ -711,7 +735,11 @@ The function returns the number of bytes returned or <0 on error.
 sub interrupt_read
 {
     my $self = shift;
-    my ($ep, $bytes, $size, $timeout) = @_;
+    my $ep = shift;
+    my $bytes = shift;
+    my $size = shift;
+    my $timeout = shift;
+
     $self->_assert_open();
 
     if(length $bytes < $size)
@@ -743,10 +771,6 @@ The number of the endpoint to write
 
 Buffer from which to write the requested data.
 
-=item size
-
-Number of bytes of data to write.
-
 =item timeout
 
 Maximum time to wait (in milliseconds)
@@ -760,7 +784,10 @@ The function returns the number of bytes written or <0 on error.
 sub bulk_write
 {
     my $self = shift;
-    my ($ep, $bytes, $timeout) = @_;
+    my $ep = shift;
+    my $bytes = shift;
+    my $timeout = shift;
+
     $self->_assert_open();
 
     return Device::USB::libusb_bulk_write(
@@ -782,10 +809,6 @@ The number of the endpoint to write
 
 Buffer from which to write the requested data.
 
-=item size
-
-Number of bytes of data to write.
-
 =item timeout
 
 Maximum time to wait (in milliseconds)
@@ -799,7 +822,10 @@ The function returns the number of bytes written or <0 on error.
 sub interrupt_write
 {
     my $self = shift;
-    my ($ep, $bytes, $timeout) = @_;
+    my $ep = shift;
+    my $bytes = shift;
+    my $timeout = shift;
+
     $self->_assert_open();
 
     return Device::USB::libusb_interrupt_write(
@@ -827,7 +853,9 @@ Returns C<undef> on error.
 sub get_driver_np
 {
     my $self = shift;
-    my ($interface, $name) = @_;
+    my $interface = shift;
+    my $name = shift;
+
     $self->_assert_open();
 
     my $buf = "\0" x MAX_BUFFER_SIZE;

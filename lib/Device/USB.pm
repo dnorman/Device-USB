@@ -7,9 +7,14 @@ use Carp;
 
 use Inline (
         C => "DATA",
-        LIBS => '-lusb',
+        ($ENV{LIBUSB_LIBDIR}
+            ? ( LIBS => "-L$ENV{LIBUSB_LIBDIR} " .
+                        ($^O eq 'MSWin32' ? '-llibusb' : '-lusb') )
+            : ( LIBS => '-lusb', )
+        ),
+        ($ENV{LIBUSB_INCDIR} ? ( INC => "-I$ENV{LIBUSB_INCDIR}" ) : () ),
         NAME => 'Device::USB',
-        VERSION => '0.21',
+        VERSION => '0.22',
    );
 
 Inline->init();
@@ -40,11 +45,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.21
+Version 0.22
 
 =cut
 
-our $VERSION='0.21';
+our $VERSION='0.22';
 
 
 =head1 SYNOPSIS
@@ -264,7 +269,9 @@ returns a device reference or undef if none was found.
 sub find_device
 {
     my $self = shift;
-    my ($vendor, $product) = @_;
+    my $vendor = shift;
+    my $product = shift;
+
     return lib_find_usb_device( $vendor, $product );
 }
 
@@ -333,7 +340,8 @@ to that array in scalar context
 sub list_devices
 {
     my $self = shift;
-    my ($vendor, $product) = @_;
+    my $vendor = shift;
+    my $product = shift;
     my $pred = undef;
 
     if(!defined $vendor)
