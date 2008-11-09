@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Device-USB
-version:             0.26
+version:             0.27
 abstract:            Use libusb to access USB devices.
 license:             ~
 author:              
@@ -9,8 +9,9 @@ generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
     Carp:                          0
-    Inline:                        0.44
+    Inline:                        0
     Inline::C:                     0
+    Inline::MakeMaker:             0
     Test::More:                    0
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
