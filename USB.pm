@@ -8,13 +8,13 @@ use Carp;
 use Inline (
         C => "DATA",
         ($ENV{LIBUSB_LIBDIR}
-            ? ( LIBS => "-L$ENV{LIBUSB_LIBDIR} " .
-                        ($^O eq 'MSWin32' ? '-llibusb' : '-lusb') )
+            ? ( LIBS => "-L\"$ENV{LIBUSB_LIBDIR}\" " .
+                        ($^O eq 'MSWin32' ? ' -llibusb -L\"$ENV{WINDDK}\\lib\\crt\\i386\" -lmsvcrt ' : '-lusb') )
             : ( LIBS => '-lusb', )
         ),
-        ($ENV{LIBUSB_INCDIR} ? ( INC => "-I$ENV{LIBUSB_INCDIR}" ) : () ),
+        ($ENV{LIBUSB_INCDIR} ? ( INC => "-I\"$ENV{LIBUSB_INCDIR}\"" ) : () ),
         NAME => 'Device::USB',
-        VERSION => '0.27',
+        VERSION => '0.28',
    );
 
 Inline->init();
@@ -45,11 +45,11 @@ Device::USB - Use libusb to access USB devices.
 
 =head1 VERSION
 
-Version 0.27
+Version 0.28
 
 =cut
 
-our $VERSION='0.27';
+our $VERSION='0.28';
 
 
 =head1 SYNOPSIS
@@ -504,7 +504,8 @@ Thanks to Josep Monés Teixidor for fixing the C<bInterfaceClass> bug.
 Thanks to Mike McCauley for support of C<usb_get_driver_np> and
 C<usb_detach_kernel_driver_np>.
 
-Thanks to Vadim Mikhailov for fixing a compile problem with VC6 on Windows.
+Thanks to Vadim Mikhailov for fixing a compile problem with VC6 on Windows
+and then chipping in again for VS 2005 on Windows.
 
 Thanks to John R. Hogheruis for information about modifying the Inline
 parameters for compiling with Strawberry Perl on Windows.

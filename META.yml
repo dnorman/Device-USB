@@ -1,11 +1,11 @@
 --- #YAML:1.0
 name:                Device-USB
-version:             0.27
+version:             0.28
 abstract:            Use libusb to access USB devices.
 license:             ~
 author:              
     - G. Wade Johnson <wade@anomaly.org>
-generated_by:        ExtUtils::MakeMaker version 6.44
+generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
     Carp:                          0
