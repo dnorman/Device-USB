@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Device-USB
-version:            0.30
+version:            0.31
 abstract:           Use libusb to access USB devices.
 author:
     - G. Wade Johnson <wade@anomaly.org>
