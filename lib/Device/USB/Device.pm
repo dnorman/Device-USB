@@ -69,7 +69,7 @@ Close the device connected to the object.
 sub DESTROY
 {
     my $self = shift;
-    Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
+    Device::USB::usbwrap_close( $self->{handle} ) if $self->{handle};
     return;
 }
 
@@ -269,9 +269,9 @@ If the device fails to open, the reason will be available in $!.
 sub open  ## no critic (ProhibitBuiltinHomonyms)
 {
     my $self = shift;
-    Device::USB::libusb_close( $self->{handle} ) if $self->{handle};
+    Device::USB::usbwrap_close( $self->{handle} ) if $self->{handle};
     local $! = 0;
-    $self->{handle} = Device::USB::libusb_open( $self->{device} );
+    $self->{handle} = Device::USB::usbwrap_open( $self->{device} );
 
     return 0 == $!;
 }
@@ -303,7 +303,7 @@ sub set_configuration
     my $configuration = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_set_configuration( $self->{handle}, $configuration );
+    return Device::USB::usbwrap_set_configuration( $self->{handle}, $configuration );
 }
 
 =item set_altinterface
@@ -328,7 +328,7 @@ sub set_altinterface
     my $alternate = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_set_altinterface( $self->{handle}, $alternate );
+    return Device::USB::usbwrap_set_altinterface( $self->{handle}, $alternate );
 }
 
 =item clear_halt
@@ -353,7 +353,7 @@ sub clear_halt
     my $ep = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_clear_halt( $self->{handle}, $ep );
+    return Device::USB::usbwrap_clear_halt( $self->{handle}, $ep );
 }
 
 =item reset
@@ -369,7 +369,7 @@ sub reset  ## no critic (ProhibitBuiltinHomonyms)
 
     return 0 unless defined $self->{handle};
 
-    my $ret = Device::USB::libusb_reset( $self->{handle} );
+    my $ret = Device::USB::usbwrap_reset( $self->{handle} );
     delete $self->{handle} unless $ret;
 
     return $ret;
@@ -397,7 +397,7 @@ sub claim_interface
     my $interface = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_claim_interface( $self->{handle}, $interface );
+    return Device::USB::usbwrap_claim_interface( $self->{handle}, $interface );
 }
 
 =item release_interface
@@ -422,7 +422,7 @@ sub release_interface
     my $interface = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_release_interface( $self->{handle}, $interface );
+    return Device::USB::usbwrap_release_interface( $self->{handle}, $interface );
 }
 
 =item control_msg
@@ -466,7 +466,7 @@ sub control_msg
     $bytes = q{} unless defined $bytes;
     $self->_assert_open();
 
-    my ($retval, $out) = Device::USB::libusb_control_msg(
+    my ($retval, $out) = Device::USB::usbwrap_control_msg(
             $self->{handle}, $requesttype, $request, $value,
             $index, $bytes, $size, $timeout
        );
@@ -506,7 +506,7 @@ sub get_string
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
-    my $retlen = Device::USB::libusb_get_string(
+    my $retlen = Device::USB::usbwrap_get_string(
         $self->{handle}, $index, $langid, $buf, MAX_BUFFER_SIZE
     );
 
@@ -539,7 +539,7 @@ sub get_string_simple
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
-    my $retlen = Device::USB::libusb_get_string_simple(
+    my $retlen = Device::USB::usbwrap_get_string_simple(
         $self->{handle}, $index, $buf, MAX_BUFFER_SIZE
     );
 
@@ -580,7 +580,7 @@ sub get_descriptor
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
-    my $retlen = Device::USB::libusb_get_descriptor(
+    my $retlen = Device::USB::usbwrap_get_descriptor(
         $self->{handle}, $type, $index, $buf, MAX_BUFFER_SIZE
     );
 
@@ -635,7 +635,7 @@ sub get_descriptor_by_endpoint
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
-    my $retlen = Device::USB::libusb_get_descriptor_by_endpoint(
+    my $retlen = Device::USB::usbwrap_get_descriptor_by_endpoint(
         $self->{handle}, $ep, $type, $index, $buf, MAX_BUFFER_SIZE
     );
 
@@ -693,7 +693,7 @@ sub bulk_read
         $bytes .= "\0" x ($size - length $bytes);
     }
 
-    my $retlen = Device::USB::libusb_bulk_read(
+    my $retlen = Device::USB::usbwrap_bulk_read(
         $self->{handle}, $ep, $bytes, $size, $timeout
     );
 
@@ -745,7 +745,7 @@ sub interrupt_read
         $bytes .= "\0" x ($size - length $bytes);
     }
 
-    my $retlen = Device::USB::libusb_interrupt_read(
+    my $retlen = Device::USB::usbwrap_interrupt_read(
         $self->{handle}, $ep, $bytes, $size, $timeout
     );
 
@@ -788,7 +788,7 @@ sub bulk_write
 
     $self->_assert_open();
 
-    return Device::USB::libusb_bulk_write(
+    return Device::USB::usbwrap_bulk_write(
         $self->{handle}, $ep, $bytes, length $bytes, $timeout
     );
 }
@@ -826,7 +826,7 @@ sub interrupt_write
 
     $self->_assert_open();
 
-    return Device::USB::libusb_interrupt_write(
+    return Device::USB::usbwrap_interrupt_write(
         $self->{handle}, $ep, $bytes, length $bytes, $timeout
     );
 }
@@ -858,7 +858,7 @@ sub get_driver_np
 
     my $buf = "\0" x MAX_BUFFER_SIZE;
 
-    my $retlen = Device::USB::libusb_get_driver_np(
+    my $retlen = Device::USB::usbwrap_get_driver_np(
         $self->{handle}, $interface, $buf, MAX_BUFFER_SIZE
     );
 
@@ -882,7 +882,7 @@ sub detach_kernel_driver_np
     my $interface = shift;
     $self->_assert_open();
 
-    return Device::USB::libusb_detach_kernel_driver_np(
+    return Device::USB::usbwrap_detach_kernel_driver_np(
         $self->{handle}, $interface
     );
 }
